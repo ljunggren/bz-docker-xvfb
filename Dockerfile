@@ -18,6 +18,8 @@ COPY package.json /app
 # Install dependencies
 RUN npm install
 COPY . /app
+RUN chmod a+x wrap.sh
+RUN mkdir -p /var/boozang
 
 # Start server on port 3000∂
 EXPOSE 3000:3001
@@ -27,4 +29,8 @@ ENV PORT=3001
 ENV DISPLAY :99
 
 # Start script on Xvfb
-CMD Xvfb :99 -screen 0 1024x768x16 & npm start
+ENTRYPOINT ["./wrap.sh"]
+
+
+# ENTRYPOINT ["Xvfb :99 -screen 0 1024x768x16 & boozang"]
+#ENTRYPOINT ["Xvfb :99 -screen 0 1024x768x16 & npm start"]
