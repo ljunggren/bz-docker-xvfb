@@ -47,7 +47,7 @@ The following options can be specified.
 
 Example:
 
-`docker run -v "$(pwd):/var/boozang" degardinn/boozang --screenshot https://localhost/bz.html#6d34d123abfe65dc/0.0.1/m3/t2`
+`docker run --rm  -v "$(pwd):/var/boozang/" styrman/boozang-runner --screenshot "https://ai.boozang.com/extension?token=XXXXXXXXXXXXXXXXX5d35df3dd337ee52f36b113e#5d35df3dd337ee52f36b113e/0.0.1/m4/t3/"`
 
 
 ### Accessing reports
@@ -56,4 +56,4 @@ The report and screenshot are written to the container `/var/boozang` volume.
 
 To retrieve them, the volume can be mapped to a local directory, this way:
 
-`docker run -v "$(pwd):/var/boozang" degardinn/boozang --screenshot https://localhost/bz.html#6d34d123abfe65dc/0.0.1/m3/t2`
+`docker run --rm  -v "$(pwd):/var/boozang/" styrman/boozang-runner "https://ai.boozang.com/extension?token=XXXXXXXXXXXXXXXXX5d35df3dd337ee52f36b113e#5d35df3dd337ee52f36b113e/0.0.1/m4/t3/"`
