@@ -1,6 +1,6 @@
 # Boozang Docker Test runner container (XVFB + Puppeteer)
 
-[`degardinn/boozang`](https://hub.docker.com/r/ndegardin/boozang/)
+[`styrman/boozang`](https://hub.docker.com/r/styrman/boozang-runner/)
 
 A [Boozang](https://boozang.com/) container, based on [nsourov/Puppeteer-with-xvfb](https://github.com/nsourov/Puppeteer-with-xvfb), to run Boozang tests in a browser with Xvfb.
 
