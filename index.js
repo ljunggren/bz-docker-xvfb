@@ -8,7 +8,7 @@ const fs = require('fs');
 
 
 const opts = {
-  "headfull": false,
+  "headfull": true,
   "verbose" : false,
   "file": "result",
   "device" : "default",
