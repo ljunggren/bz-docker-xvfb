@@ -10,8 +10,8 @@ const fs = require('fs');
 const opts = {
   "headfull": true,
   "verbose" : false,
-  "file": "result",
-  "device" : "default",
+  "file": "",
+  "device" : "",
   "screenshot": false,
   "token":""
 };
@@ -34,14 +34,6 @@ if (result.errors || !result.args || result.args.length !== 1) {
 
 const isURL = (str) => {
     const pattern = /^http(s|):\/\/.+$/i;
-  /*
-    const pattern = new RegExp('^(https?:\\/\\/)' + // protocol
-        '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.?)+[a-z]{2,}|' + // domain name
-        '((\\d{1,3}\\.){3}\\d{1,3}))' + // OR ip (v4) address
-        '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*' + // port and path
-        '(\\?[;&a-z\\d%_.~+=-]*)?' + // query string
-        '(\\#[.-a-z\\d_/]*)/run$', 'i') // mandatory fragment locator (. and / are allowed even if they are normally invalid)
-  */
     return pattern.test(str)
 }
 
@@ -60,8 +52,18 @@ if (!url || !isURL(url)) {
     process.exit(2)
 }
 
-console.log('Opening URL: '+ url);
-console.log('Running with options: headfull=', opts.headfull, ', verbose=', opts.verbose, ', reportfile=', opts.reportfile, ', device=', opts.device);
+console.log("Running Boozang test runner...");
+
+if (!opts.headfull)
+  console.log('Running headless mode.');
+if (opts.verbose)
+  console.log("Verbose logging on");
+if (opts.file)
+  console.log("Using custom report file: " + opts.file);
+if (opts.device)
+  console.log("Using custom device: " + opts.device);
+
+
 const file = "/var/boozang/" + (opts.file || "results");
 
 const RED = '\033[0;31m'
@@ -121,12 +123,12 @@ function timeout(ms) {
   } 
 
   const page = await browser.newPage();
+  
   const devices = require('puppeteer/DeviceDescriptors');
-
   await page._client.send('Emulation.clearDeviceMetricsOverride');
-  if (opts.device === "default") {
-   
-    console.log('No device specified.');
+
+  if (!opts.device) {   
+    //console.log('No device specified.');
   } else if (!devices[opts.device]) {
     console.log('Device ' + opts.device + ' not found. Ignoring');
   } else {
@@ -134,7 +136,21 @@ function timeout(ms) {
     await page.emulate(devices[opts.device]);
   }
 
+  
+  let startTime = new Date();
+
   console.log("Opening URL: " + testUrl);
+
+  let timer=0
+  function assignTimeout(msg, seconds){
+    clearTimeout(timer)
+    timer=setTimeout(function(){
+      console.error(msg)
+      process.exit(2)
+    },seconds)
+  }
+
+  assignTimeout("Error: Timeout kicked in before loading the test. Verify access token and test URL.", 20000);
 
   await page.goto(testUrl);
 
@@ -146,8 +162,13 @@ function timeout(ms) {
     browser.close(); 
   }
 
+  console.log("Loading test");
+  setInterval(function(){ process.stdout.write(".") }, 1000);
+  
   page.on('console', msg => {
     let logString = (!!msg && msg.text()) || "def";
+
+    //
 
     if (verbose) {
       console.log("DEBUG: " + logString);
@@ -162,6 +183,7 @@ function timeout(ms) {
     // Report progress
     if (logString.includes("BZ-LOG")) {
       console.log(logString.replace("BZ-LOG:",""));
+      assignTimeout("Error: Browser not responding. Timing out.", 60000);
     }
     else if (logString.includes("<html>")) {
       fs.writeFile(`${file}.html`, logString, (err) => {
