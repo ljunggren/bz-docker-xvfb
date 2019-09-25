@@ -151,8 +151,13 @@ function timeout(ms) {
   }
 
   assignTimeout("Error: Timeout kicked in before loading the test. Verify access token and test URL.", 20000);
-
-  await page.goto(testUrl);
+  
+  try { 
+    await page.goto(testUrl);
+  } catch (err) {
+    console.error("Failed to open URL with error: " + err.message);
+    process.exit(2)
+  }
 
   if (opts.screenshot){
     console.log("Wait a second for screenshot.");
@@ -163,7 +168,6 @@ function timeout(ms) {
   }
 
   console.log("Loading test");
-  setInterval(function(){ process.stdout.write(".") }, 1000);
   
   page.on('console', msg => {
     let logString = (!!msg && msg.text()) || "def";
@@ -182,8 +186,20 @@ function timeout(ms) {
             
     // Report progress
     if (logString.includes("BZ-LOG")) {
-      console.log(logString.replace("BZ-LOG:",""));
-      assignTimeout("Error: Browser not responding. Timing out.", 60000);
+      if (logString.includes("action")){
+        let timeout = parseInt(logString.split("ms:")[1])+20000;
+        assignTimeout("Error: Action taking too long. Timing out.", timeout);
+      } else if (logString.includes("screenshot")){
+        // console.log("Screenshot " +  logString.split("screenshot:")[1]);
+      } else if (logString.includes("next schedule at")){
+        let nextSchedule = Date.parse(logString.split("next schedule at: ")[1]);
+        let timeout = nextSchedule - Date.now() + 30000;
+        console.log(logString.replace("BZ-LOG: ","")); 
+        assignTimeout("Next scheduled test not starting in time", timeout);
+      } else 
+      {
+        console.log(logString.replace("BZ-LOG: ",""));  
+      } 
     }
     else if (logString.includes("<html>")) {
       fs.writeFile(`${file}.html`, logString, (err) => {
@@ -194,6 +210,7 @@ function timeout(ms) {
         console.log(`Report "${file}.html" saved.`)
       })
     } else if (logString.includes('"result": {')) {
+      assignTimeout("Report generation taking too long", 40000);
       fs.writeFile(`${file}.json`, logString, (err) => {
         if (err) {
           console.error("Error: ", err)
