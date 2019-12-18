@@ -3,13 +3,19 @@
   "name": "Boozang AI",
   "short_name": "Boozang AI",
   "description": "Boozang test automation is powered by AI. Tests can be recorded or written in clear text.",
-  "version": "3.2.6",
+  "version": "3.6.1",
   "permissions": ["webRequest", "webRequestBlocking","tabs", "*://*/*"],
   "background": {
     "scripts": ["background"]
   },
   "externally_connectable":{
-    "matches":["*://localhost/*","*://*.boozang.com/*","http://47.93.0.182/*"]
+    "matches":[
+      "*://localhost/*",
+      "*://*.boozang.com/*",
+      "*://47.93.0.182/*",
+      "*://212.64.20.13/*",
+      "*://118.25.68.218/*"
+    ]
   },
   "content_scripts": [
     {
@@ -27,6 +33,6 @@
   },
   "browser_action": {
     "default_icon": "img/boozang.png",
-    "defualt_title": "Launch Boozang"
+    "default_title": "Launch Boozang"
   }
 }

@@ -8,13 +8,13 @@ const fs = require('fs');
 
 
 const opts = {
-  "headfull": true,
+  "headfull": false,
   "verbose" : false,
   "file": "",
   "device" : "",
   "screenshot": false,
-  "token":""
-};
+  "token":"",
+}
 
 // Remove the first two arguments, which are the 'node' binary and the name
 // of your script.
@@ -51,7 +51,6 @@ if (!url || !isURL(url)) {
     console.error("Invalid URL: " + url)
     process.exit(2)
 }
-
 console.log("Running Boozang test runner...");
 
 if (!opts.headfull)
@@ -65,6 +64,7 @@ if (opts.device)
 
 
 const file = "/var/boozang/" + (opts.file || "results");
+//const file = (opts.file || "results");
 
 const RED = '\033[0;31m'
 const GREEN = '\033[0;32m'
@@ -94,17 +94,27 @@ const parseReport = (json) => {
   const launchargs = getLaunchargs(url);
 
   function getLaunchargs(url){
+     if (url.includes('extension')) {
       return [
       '--disable-extensions-except=' + __dirname + '/bz-extension',
       '--load-extension=' + __dirname + '/bz-extension',
-      "--no-sandbox", "--disable-setuid-sandbox"
-      ];
-  } 
- 
+      '--ignore-certificate-errors',
+      '--no-sandbox'
+        ];
+     } else {
+      return [];
+     }
+  }
 
+  if (launchargs.length > 0 && !opts.headfull) {
+    console.log("Url needs extension to run. Forcing headless mode to false.");
+  }
+
+  const headlessMode = ! (opts.headfull || launchargs.length > 0)
+  
   const browser = await puppeteer.launch({
     headless: false,
-    args: launchargs
+    args: launchargs 
   });
 
 
@@ -123,11 +133,11 @@ function timeout(ms) {
   } 
 
   const page = await browser.newPage();
-  
   const devices = require('puppeteer/DeviceDescriptors');
-  await page._client.send('Emulation.clearDeviceMetricsOverride');
 
-  if (!opts.device) {   
+  await page._client.send('Emulation.clearDeviceMetricsOverride');
+  if (!opts.device) {
+   
     //console.log('No device specified.');
   } else if (!devices[opts.device]) {
     console.log('Device ' + opts.device + ' not found. Ignoring');
@@ -136,28 +146,30 @@ function timeout(ms) {
     await page.emulate(devices[opts.device]);
   }
 
-  
-  let startTime = new Date();
-
   console.log("Opening URL: " + testUrl);
 
   let timer=0
-  function assignTimeout(msg, seconds){
+  function assignTimeout(msg, milliseconds){
     clearTimeout(timer)
     timer=setTimeout(function(){
       console.error(msg)
+      console.error("Timeout was set to: " + milliseconds)
       process.exit(2)
-    },seconds)
+    },milliseconds)
   }
 
-  assignTimeout("Error: Timeout kicked in before loading the test. Verify access token and test URL.", 20000);
-  
+  assignTimeout("Error: Timeout kicked in before loading the test. Verify access token and test URL.", 2000000);
+
   try { 
     await page.goto(testUrl);
   } catch (err) {
     console.error("Failed to open URL with error: " + err.message);
     process.exit(2)
   }
+
+  await page.evaluate(() => {
+    localStorage.setItem('ci', 'example-token');
+  });
 
   if (opts.screenshot){
     console.log("Wait a second for screenshot.");
@@ -167,12 +179,10 @@ function timeout(ms) {
     browser.close(); 
   }
 
-  console.log("Loading test");
-  
+  let logIndex = 0;
+
   page.on('console', msg => {
     let logString = (!!msg && msg.text()) || "def";
-
-    //
 
     if (verbose) {
       console.log("DEBUG: " + logString);
@@ -187,31 +197,28 @@ function timeout(ms) {
     // Report progress
     if (logString.includes("BZ-LOG")) {
       if (logString.includes("action")){
-        let timeout = parseInt(logString.split("ms:")[1])+20000;
-        assignTimeout("Error: Action taking too long. Timing out.", timeout);
+        let timeout = parseInt(logString.split("ms:")[1]);
+        assignTimeout("Error: Action taking too long. Timing out.", timeout+120000);
       } else if (logString.includes("screenshot")){
-        // console.log("Screenshot " +  logString.split("screenshot:")[1]);
+        //console.log("Screenshot " +  logString.split("screenshot:")[1]);
       } else if (logString.includes("next schedule at")){
         let nextSchedule = Date.parse(logString.split("next schedule at: ")[1]);
-        let timeout = nextSchedule - Date.now() + 30000;
-        console.log(logString.replace("BZ-LOG: ","")); 
+        let timeout = nextSchedule - Date.now() + 30000; 
         assignTimeout("Next scheduled test not starting in time", timeout);
-      } else 
-      {
-        console.log(logString.replace("BZ-LOG: ",""));  
       } 
+      //console.log(logString.replace("BZ-LOG: ","").replace("&check;",GREEN + "✓"+ BLANK));   
+      console.log(logString.replace("BZ-LOG: ","").replace("&check;","✓"));   
     }
     else if (logString.includes("<html>")) {
-      fs.writeFile(`${file}.html`, logString, (err) => {
+      fs.writeFile(`${file}${logIndex++}.html`, logString, (err) => {
         if (err) {
           console.error("Error: ", err)
           process.exit(2)
         }
-        console.log(`Report "${file}.html" saved.`)
       })
     } else if (logString.includes('"result": {')) {
-      assignTimeout("Report generation taking too long", 40000);
-      fs.writeFile(`${file}.json`, logString, (err) => {
+       assignTimeout("Report generation taking too long", 30000);
+       fs.writeFile(`${file}.json`, logString, (err) => {
         if (err) {
           console.error("Error: ", err)
           process.exit(2)
