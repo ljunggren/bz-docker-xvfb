@@ -197,7 +197,7 @@ function assignGlobalTimeout(msg, milliseconds){
     },milliseconds)
   }
 
-  assignTimeout("Error: Timeout kicked in before loading the test. Verify access token and test URL.", 2000000);
+  assignTimeout("Error: Timeout kicked in before loading the test. Verify access token and test URL.", 30000);
 
   try { 
     await page.goto(testUrl);
@@ -212,9 +212,15 @@ function assignGlobalTimeout(msg, milliseconds){
 
   if (opts.screenshot){
     console.log("Wait a second for screenshot.");
-    await timeout(1000);                     
+    await timeout(1000); 
+    let screenshotFile = (docker ? "/var/boozang/" : "") + file + ".png";
+    console.log("Making screenshot: " + screenshotFile); 
+    page.screenshot({path: screenshotFile});
+    
+    await timeout(5000);                     
     console.log("Closing browser.");
     browser.close(); 
+    process.exit(0);
   }
 
   let logIndex = 0;
@@ -246,7 +252,7 @@ function assignGlobalTimeout(msg, milliseconds){
       // Handle set timeouts and action log
       if (logString.includes("action")){
         let timeout = parseInt(logString.split("ms:")[1]);
-        assignTimeout("Error: Action taking too long. Timing out.", timeout+300000); 
+        assignTimeout("Error: Action taking too long. Timing out.", timeout+150000); 
         console.log(logString.replace("BZ-LOG: ","").replace("&check;","✓")); 
       } 
       // Handle screenshots
