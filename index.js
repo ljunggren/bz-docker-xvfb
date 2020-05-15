@@ -56,7 +56,7 @@ if ((!opts.screenshot) && (!opts.listscenarios) && typeof (url) == 'string' && !
     if (!url.endsWith("/")) {
         url += "/"
     }
-    url += ""
+    url += "run"
 }
 
 if (!url || !isURL(url)) {
