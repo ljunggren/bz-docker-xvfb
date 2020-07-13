@@ -288,7 +288,8 @@ function assignGlobalTimeout(msg, milliseconds){
   }
 
   let logIndex = 0;
-  
+  let success = false;
+
   page.on('console', msg => {
     
     // Set logString
@@ -331,8 +332,8 @@ function assignGlobalTimeout(msg, milliseconds){
       if (formattedLog.includes("ms:")){
         let timeout = parseInt(logString.split("ms:")[1]);
         //console.log("Setting timeout: " + timeout);
-        //assignTimeout("Error: Action taking too long. Timing out.", timeout+150000); 
-        assignTimeout("Error: Action taking too long. Timing out.", 3000); 
+        assignTimeout("Error: Action taking too long. Timing out.", timeout+150000); 
+        //assignTimeout("Error: Action taking too long. Timing out.", 3000); 
       } 
       // Handle screenshots
       else if (formattedLog.includes("screenshot:")){
