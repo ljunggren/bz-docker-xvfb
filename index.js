@@ -117,6 +117,7 @@ const parseReport = (json) => {
       '--load-extension=' + __dirname + '/bz-extension',
       '--ignore-certificate-errors',
       '--no-sandbox',
+      `--window-size=${width},${height}`,
       '--defaultViewport: null'
         ];
      } else {
