@@ -210,7 +210,7 @@ function assignGlobalTimeout(msg, milliseconds){
   } 
 
   const page = await browser.newPage();
-  const devices = require('puppeteer/DeviceDescriptors');
+  const devices = puppeteer.devices;
 
   await page._client.send('Emulation.clearDeviceMetricsOverride');
   if (!opts.device) {
@@ -307,6 +307,22 @@ function assignGlobalTimeout(msg, milliseconds){
     } else if (logString.includes("Success !")) {
           success = true
     }
+
+    // CSV writer
+    if (logString.includes("BZ-OUTPUT-FILE:")){
+        let filearray= logString.split("\n");
+        let filename = filearray.shift().split(":")[1].trim();
+        console.log("Writing CSV file to disk " + filename); 
+        filearray.pop();
+        let filecontent = filearray.join("\n");
+
+        fs.writeFile(`${filename}`, filecontent, (err) => {
+          if (err) {
+            console.error("Error: ", err)
+            process.exit(2)
+          }
+        })   
+    } 
             
     // Report progress
     if (logString.includes("BZ-LOG")) {
@@ -359,6 +375,7 @@ function assignGlobalTimeout(msg, milliseconds){
           console.log("Test: " + failedTest +" failed. Added to " + file + "-failed.log saved.");
         })
       } 
+
       // Handle execute Javascript for hanging app window
       else if (formattedLog.includes("app-run:")){
         let command = logString.split("app-run:")[1];
