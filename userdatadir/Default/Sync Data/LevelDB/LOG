@@ -1,1 +1,3 @@
-2020/09/26-20:28:15.618 19 Reusing MANIFEST /var/boozang/userdatadir/Default/Sync Data/LevelDB/MANIFEST-000001
+2020/09/26-21:33:56.238 25 Reusing MANIFEST /var/boozang/userdatadir/Default/Sync Data/LevelDB/MANIFEST-000001
+2020/09/26-21:33:56.318 25 Recovering log #3
+2020/09/26-21:33:56.331 25 Reusing old log /var/boozang/userdatadir/Default/Sync Data/LevelDB/000003.log 
