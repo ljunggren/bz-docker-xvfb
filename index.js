@@ -52,10 +52,8 @@ console.log("Example: Use --verbose for verbose logging (boolean example). Use -
 (async () => {
 
   let userdatadir = "";
-  if (opts.userdatadir){
-    userdatadir = (docker ? "/var/boozang/" : "") + (opts.userdatadir || "");
-    console.log("Setting userdatadir: " + userdatadir);
-  }
+  userdatadir = (docker ? "/var/boozang/" : "") + (opts.userdatadir || "");
+  console.log("Setting userdatadir: " + userdatadir);
 
   const launchargs = [
     '--disable-extensions-except=' + __dirname + '/bz-extension',
