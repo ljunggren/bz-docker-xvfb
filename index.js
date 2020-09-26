@@ -51,8 +51,10 @@ console.log("Example: Use --verbose for verbose logging (boolean example). Use -
 
 (async () => {
 
+  const file = (docker ? "/var/boozang/" : "") + (opts.file || "results");
+
   let userdatadir = "";
-  userdatadir = (docker ? "/var/boozang/" : "") + (opts.userdatadir || "");
+  userdatadir = (docker ? "/var/boozang/userdatadir" : "") + (opts.userdatadir || "");
   console.log("Setting userdatadir: " + userdatadir);
 
   const launchargs = [
@@ -66,7 +68,7 @@ console.log("Example: Use --verbose for verbose logging (boolean example). Use -
 
   const browser = await puppeteer.launch({
     headless: false,
-    userdatadir: userdatadir,
+    userDataDir: userdatadir,
     args: launchargs 
   });
 
