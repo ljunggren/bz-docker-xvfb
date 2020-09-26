@@ -54,9 +54,11 @@ console.log("Example: Use --verbose for verbose logging (boolean example). Use -
   const file = (docker ? "/var/boozang/" : "") + (opts.file || "results");
 
   let userdatadir = "";
-  userdatadir = (docker ? "/var/boozang/userdatadir" : "") + (opts.userdatadir || "");
-  console.log("Setting userdatadir: " + userdatadir);
-
+  if (opts.userdatadir){
+    userdatadir = (docker ? "/var/boozang/userdatadir" : "") + (opts.userdatadir || "");
+    console.log("Setting userdatadir: " + userdatadir);
+  }
+  
   const launchargs = [
     '--disable-extensions-except=' + __dirname + '/bz-extension',
     '--load-extension=' + __dirname + '/bz-extension',
