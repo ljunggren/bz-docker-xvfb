@@ -119,6 +119,7 @@ console.log("Example: Use --verbose for verbose logging (boolean example). Use -
   if(listsuite||listscenarios){
     Service.setBeginningFun(function(){
       Service.insertFileTask(function(){
+        Service.result = 0;
         Service.shutdown()
       })
       if(listsuite){
