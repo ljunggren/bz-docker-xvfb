@@ -90,7 +90,6 @@ console.log("Example: Use --verbose for verbose logging (boolean example). Use -
     printStackTrace("ide",err);
   }
 
-
   // Setup popup
   let popup = null;
   function setupPopup() {
@@ -122,9 +121,15 @@ console.log("Example: Use --verbose for verbose logging (boolean example). Use -
       Service.insertFileTask(function(){
         Service.shutdown()
       })
-      page.evaluate((v)=>{
-        $util.getTestsBySuite(v)
-      }, listsuite||listscenarios);
+      if(listsuite){
+        page.evaluate((v)=>{
+          $util.getTestsBySuite(v)
+        }, listsuite);
+      }else if(listscenarios){
+        page.evaluate((v)=>{
+          $util.getScenariosByTag(v)
+        }, JSON.parse(listscenarios));
+      }
     })
   }
 
@@ -136,6 +141,8 @@ console.log("Example: Use --verbose for verbose logging (boolean example). Use -
   page.on("pageerror", idePrintStackTrace);
 
 })()
-// end async
+
+
+
 
 

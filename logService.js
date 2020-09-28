@@ -5,8 +5,9 @@ const Service = {
   taskMap:{},
   timer:0,
   status:"",
+  result: 2,
   logMonitor(page,notimeout,gtimeout,stdTimeout,reportPrefix){
-
+    this.notimeout=notimeout
     console.log("Initializing logMonitor");
     gtimeout && console.log("Override global timeout: " + gtimeout + " mins");
     stdTimeout && console.log("Override action timeout: " + stdTimeout + " mins");
@@ -158,6 +159,15 @@ const Service = {
       },
       timeout:Service.stdTimeout
     })
+
+    Service.addTask({
+      key:"Result:",
+      fun(msg){
+        Service.result = msg.split("Result:")[1].trim() == "Success" ? 0:2;
+        console.log("Exit with status code: ", Service.result);
+      },
+      timeout:Service.stdTimeout
+    })
   },
   setEndTasks(){
     Service.taskMap={}
@@ -198,7 +208,9 @@ const Service = {
   },
   shutdown(msg){
     console.log(msg)
-    process.exit(2)
+    if(!this.notimeout){
+      process.exit(Service.result)
+    }
   },
   gracefulShutdown(msg){
     console.error("Try to get Boozang to exit gracefully and write report");
