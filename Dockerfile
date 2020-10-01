@@ -21,6 +21,9 @@ COPY . /app
 RUN chmod a+x wrap.sh
 RUN mkdir -p /var/boozang
 
+# Make Chrome downloads dir
+RUN mkdir -p /root/Downloads/
+
 # Start server on port 3000∂
 EXPOSE 3000:3001
 ENV PORT=3001
