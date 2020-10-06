@@ -129,7 +129,7 @@ const Service = {
     Service.addTask({
       key:"ms:",
       fun(msg){
-        return (parseInt(msg.split(this.key)[1].trim())||0)+1000
+        return (parseInt(msg.split(this.key)[1].trim())||0) + Service.stdTimeout;
       },
       msg:"Action timeout"
     })
