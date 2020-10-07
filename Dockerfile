@@ -24,6 +24,9 @@ RUN mkdir -p /var/boozang
 # Make Chrome downloads dir
 RUN mkdir -p /root/Downloads/
 
+# Include versioning file
+ADD VERSION .
+
 # Start server on port 3000∂
 EXPOSE 3000:3001
 ENV PORT=3001
