@@ -1,7 +1,7 @@
 const fs = require('fs');
 
 const Service = {
-  stdTimeout:60000,
+  stdTimeout:120000,
   taskMap:{},
   timer:0,
   reportPrefix:"",
@@ -17,7 +17,7 @@ const Service = {
       Service.reportPrefix=reportPrefix + "_";
     } 
 
-    Service.stdTimeout=stdTimeout*60000||60000;
+    Service.stdTimeout=stdTimeout*60000||120000;
     
     
     if(!notimeout&&gtimeout){
@@ -223,7 +223,7 @@ const Service = {
     console.error("Try to get Boozang to exit gracefully and write report");
     Service.popup.screenshot({path: "graceful_shutdown.png"});
     Service.page.evaluate(()=>{  
-      BZ.e();
+      BZ.e("Timeout. Test runner telling BZ to shut down.");
       console.log("BZ-LOG: Graceful shutdown message received. Exiting... "); 
     });
     // Wait 100 seconds for Boozang to finish before force kill
