@@ -20,6 +20,9 @@ RUN npm install
 COPY . /app
 RUN chmod a+x wrap.sh
 RUN mkdir -p /var/boozang
+RUN chmod a+rw /var/boozang
+
+VOLUME /var/boozang
 
 # Make Chrome downloads dir
 RUN mkdir -p /root/Downloads/
