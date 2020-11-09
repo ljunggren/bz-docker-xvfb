@@ -7,24 +7,15 @@ const Service = {
   reportPrefix:"",
   status:"",
   result: 2,
-  logMonitor(page,notimeout,gtimeout,stdTimeout,reportPrefix){
+  logMonitor(page,notimeout,reportPrefix){
     this.notimeout=notimeout
     console.log("Initializing logMonitor");
-    gtimeout && console.log("Override global timeout: " + gtimeout + " mins");
-    stdTimeout && console.log("Override action timeout: " + stdTimeout + " mins");
+
     if (reportPrefix) {
       console.log("Override report prefix: " + reportPrefix);
       Service.reportPrefix=reportPrefix + "_";
     } 
 
-    Service.stdTimeout=stdTimeout*60000||120000;
-    
-    
-    if(!notimeout&&gtimeout){
-      setTimeout(()=>{
-        Service.gracefulShutdown("Global timeout triggered - try to do graceful shutdown")
-      },gtimeout*60000)
-    }
     if(notimeout){
       clearTimeout(Service.status)
     }
@@ -135,6 +126,16 @@ const Service = {
     })
 
     Service.addTask({
+      key:"update-std-timeout:",
+      fun(msg){
+        Service.stdTimeout = (parseInt(msg.split(this.key)[1].trim())||120000);
+        console.log("Setting std timeout to: " + Service.stdTimeout);
+        return Service.stdTimeout;
+      },
+      msg:"Standard timeout"
+    })
+
+    Service.addTask({
       key:"app-run:",
       fun(msg){
         Service.popup.evaluate(()=>{ msg;  });
@@ -219,8 +220,10 @@ const Service = {
       process.exit(Service.result)
     }
   },
-  gracefulShutdown(msg){
+  async gracefulShutdown(msg){
     console.error("Try to get Boozang to exit gracefully and write report");
+    //const { JSHeapUsedSize } = await Service.page.metrics();
+    //console.log("Memory usage on exit: " + (JSHeapUsedSize / (1024*1024)).toFixed(2) + " MB");  
     Service.popup.screenshot({path: "graceful_shutdown.png"});
     Service.page.evaluate(()=>{  
       BZ.e("Timeout. Test runner telling BZ to shut down.");
