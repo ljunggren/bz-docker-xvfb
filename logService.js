@@ -7,15 +7,25 @@ const Service = {
   reportPrefix:"",
   status:"",
   result: 2,
-  logMonitor(page,notimeout,reportPrefix){
+  logMonitor(page,notimeout,gtimeout,stdTimeout,reportPrefix){
     this.notimeout=notimeout
     console.log("Initializing logMonitor");
-
+    gtimeout && console.log("Override global timeout: " + gtimeout + " mins");
+    stdTimeout && console.log("Override action timeout: " + stdTimeout + " mins");
     if (reportPrefix) {
       console.log("Override report prefix: " + reportPrefix);
       Service.reportPrefix=reportPrefix + "_";
     } 
 
+    Service.stdTimeout=stdTimeout*60000||120000;
+    
+    console.log("Setting timeout to " + Service.stdTimeout + "ms.");
+    
+    if(!notimeout&&gtimeout){
+      setTimeout(()=>{
+        Service.gracefulShutdown("Global timeout triggered - try to do graceful shutdown")
+      },gtimeout*60000)
+    }
     if(notimeout){
       clearTimeout(Service.status)
     }
@@ -115,16 +125,7 @@ const Service = {
       timeout:Service.stdTimeout
     })
   },
-  setRunTasks(){
-    Service.taskMap={}
-    Service.addTask({
-      key:"ms:",
-      fun(msg){
-        return (parseInt(msg.split(this.key)[1].trim())||0) + Service.stdTimeout;
-      },
-      msg:"Action timeout"
-    })
-
+  insertSetStdTimeout(){
     Service.addTask({
       key:"update-std-timeout:",
       fun(msg){
@@ -133,6 +134,19 @@ const Service = {
         return Service.stdTimeout;
       },
       msg:"Standard timeout"
+    })
+  },
+  setRunTasks(){
+    Service.taskMap={}
+    
+    Service.insertSetStdTimeout()
+    
+    Service.addTask({
+      key:"ms:",
+      fun(msg){
+        return (parseInt(msg.split(this.key)[1].trim())||0) + Service.stdTimeout;
+      },
+      msg:"Action timeout"
     })
 
     Service.addTask({
@@ -170,6 +184,7 @@ const Service = {
   },
   setEndTasks(){
     Service.taskMap={}
+    Service.insertSetStdTimeout()
     Service.addTask({
       key:"Result:",
       fun(msg){
