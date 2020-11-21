@@ -125,6 +125,8 @@ console.log("Example: Use --verbose for verbose logging (boolean example). Use -
     }
     url += "run"
   }
+
+  let inService=0;
   console.log("Browser URL: "+url)
   if(url.match(/(\?|\&)key=.+(\&|\#)/)){
     console.log("Running in cooperation!")

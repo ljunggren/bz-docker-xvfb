@@ -8,9 +8,14 @@ const Service = {
   status:"",
   result: 2,
   consoleNum:0,
-  logMonitor(page,keepalive,reportPrefix,inService){
+  logMonitor(page,keepalive,reportPrefix,inService, browser, video, saveVideo){
     this.inService=inService;
-    this.keepalive=keepalive
+    this.keepalive=keepalive;
+    this.video=video;
+    this.page=page;
+    this.saveVideo = saveVideo;
+
+
     console.log("Initializing logMonitor");
    
     if (reportPrefix) {
@@ -173,6 +178,11 @@ const Service = {
         }else{
           Service.setRunTasks()
         }
+        if(Service.video && Service.video != "none"){
+          Service.page.evaluate((v)=>{
+            BZ.requestVideo()
+          });
+        }
       },
       oneTime:1,
       timeout:Service.stdTimeout
@@ -202,6 +212,41 @@ const Service = {
       key:"ide-run:",
       fun(msg){
         Service.page.evaluate(()=>{ msg;  });
+      },
+      timeout:Service.stdTimeout
+    })
+
+    Service.addTask({
+      key:"videostart:",
+      fun(msg){
+        (async () => {
+          let videoFile = msg.split("videostart:")[1]+".mp4";
+           console.log("Start recording video: ", videoFile);
+           Service.capture = await this.saveVideo(Service.popup||Service.page, Service.reportPrefix + videoFile, {followPopups:true, fps: 5});      
+        })()
+      },
+      timeout:Service.stdTimeout
+    })
+
+    Service.addTask({
+      key:"videostop:",
+      fun(msg){
+        (async () => {
+          let success = msg.includes(",success");
+          let videoFile = msg.split("videostop:")[1].split(",")[0]+".mp4";
+          console.log("Stop recording video: ", videoFile);
+          await Service.capture.stop();
+          if (success && Service.video != "all"){
+            console.log("Test success. Deleting video: " + videoFile);
+            fs.unlinkSync(Service.reportPrefix + videoFile);
+          }
+          await (()=>{
+            Service.page.evaluate((v)=>{
+              BZ.savedVideo()
+            });
+
+          })()
+        })()
       },
       timeout:Service.stdTimeout
     })
