@@ -96,8 +96,8 @@ console.log("Example: Use --verbose for verbose logging (boolean example). Use -
   function setupPopup() {
     popup = pages[pages.length-1]; 
     popup.setViewport({
-      width: parseInt(width,10),
-      height: parseInt(height,10)
+      width: parseInt(width),
+      height: parseInt(height)
     });
 
     popup.on("error", appPrintStackTrace);

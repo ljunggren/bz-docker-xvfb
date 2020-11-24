@@ -6,6 +6,7 @@ const Service = {
   timer:0,
   reportPrefix:"",
   status:"",
+  tryWakeup:0,
   result: 2,
   consoleNum:0,
   logMonitor(page,keepalive,reportPrefix,inService, browser, video, saveVideo){
@@ -15,6 +16,9 @@ const Service = {
     this.page=page;
     this.saveVideo = saveVideo;
 
+    if (this.video && this.video != "none") {
+      console.log("Running in video mode");
+    }
 
     console.log("Initializing logMonitor");
    
@@ -67,8 +71,11 @@ const Service = {
             Service.handleTimeout(timeout,"Timeout on: "+t.key+":"+timeout)
           }
         },timeout)
-        
+        let tryWakeup=Service.tryWakeup
         t.timeout&&t.fun(msg,Service.timer)
+        if(tryWakeup==Service.tryWakeup){
+          Service.tryWakeup=0
+        }
         if(t.oneTime){
           Service.removeTask(t)
         }
@@ -110,7 +117,7 @@ const Service = {
       key:"I-AM-OK",
       fun:function(){
         clearTimeout(Service.wakeupTimer)
-        
+        Service.tryWakeup++
       },
       timeout:Service.stdTimeout
     })
@@ -180,6 +187,7 @@ const Service = {
         }
         if(Service.video && Service.video != "none"){
           Service.page.evaluate((v)=>{
+            console.log("Initializing video capture...");
             BZ.requestVideo()
           });
         }
@@ -220,9 +228,9 @@ const Service = {
       key:"videostart:",
       fun(msg){
         (async () => {
-          let videoFile = msg.split("videostart:")[1]+".mp4";
+          let videoFile = msg.split("videostart:")[1].split(",")[0]+".mp4";
            console.log("Start recording video: ", videoFile);
-           Service.capture = await this.saveVideo(Service.popup||Service.page, Service.reportPrefix + videoFile, {followPopups:true, fps: 5});      
+           Service.capture = await Service.saveVideo(Service.popup||Service.page, Service.reportPrefix + videoFile, {followPopups:true, fps: 5});      
         })()
       },
       timeout:Service.stdTimeout
@@ -244,7 +252,6 @@ const Service = {
             Service.page.evaluate((v)=>{
               BZ.savedVideo()
             });
-
           })()
         })()
       },
@@ -395,33 +402,24 @@ const Service = {
     console.log(getCurrentTimeString()+": "+msg)
     console.log("Try to wakeup IDE");
     Service.wakeupIDE(timeout)
-    // //const { JSHeapUsedSize } = await Service.page.metrics();
-    // //console.log("Memory usage on exit: " + (JSHeapUsedSize / (1024*1024)).toFixed(2) + " MB");  
-    // Service.popup.screenshot({path: "graceful-timeout-"+getCurrentTimeString()+".png"});
-    // if(Service.inService){
-      // return Service.reloadIDE("Timeout")
-    // }else{
-      // Service.page.evaluate(()=>{  
-        // BZ.e("Timeout. Test runner telling BZ to shut down.");
-        // console.log("BZ-LOG: Graceful shutdown message received. Exiting... "); 
-      // });
-    // }
-    // // Wait 100 seconds for Boozang to finish before force kill
-    // setTimeout(function(){
-      // Service.shutdown("IDE Freeze - try to do graceful shutdown");
-    // },100000)   
   },
   wakeupIDE:function(timeout){
-    Service.page.evaluate((timeout)=>{
-      BZ.wakeup(timeout)
-    },timeout)
-    Service.wakeupTimer=setTimeout(()=>{
-      if(Service.keepalive){
-        Service.reloadIDE("No response from IDE. Shutting down...")
-      }else{
-        Service.shutdown("No response from IDE. Shutting down...")
-      }
-    },10000)
+    if(Service.tryWakeup>=3){
+      Service.page.evaluate(()=>{  
+        BZ.e("Try wakeup 3 times. Test runner telling BZ to stop.");
+      });
+    }else{
+      Service.page.evaluate((timeout)=>{
+        BZ.wakeup(timeout)
+      },timeout)
+      Service.wakeupTimer=setTimeout(()=>{
+        if(Service.keepalive){
+          Service.reloadIDE("No response from IDE. Shutting down...")
+        }else{
+          Service.shutdown("No response from IDE. Shutting down...")
+        }
+      },10000)
+    }
   }
 }
 Service.init()
