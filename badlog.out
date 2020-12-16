@@ -1,0 +1,27 @@
+Running Boozang runner version: 2.0.22
+In init task processing
+Running with following args
+{
+  verbose: false,
+  file: 'report',
+  listscenarios: '',
+  listsuite: '',
+  device: '',
+  screenshot: false,
+  token: '',
+  userdatadir: '',
+  width: 1280,
+  height: 1024,
+  docker: true,
+  keepalive: false
+}
+Example: Use --verbose for verbose logging (boolean example). Use --width=800 to override default width (value example.)
+Browser URL: http://staging-be.boozang.com/extension?token=9b1cef55504467b6436ab2aaffe93f925e3f275e64f84941a326d4d8&env=4#5e3f275e64f84941a326d4d8/ci44/
+Running in stand alone!
+Initializing logMonitor
+Override report prefix: /var/boozang/report
+Running Chrome version: Chrome/88.0.4298.0
+0: clean task at beginning
+1: ready
+Ready on logService
+time="2020-12-10T13:58:16-05:00" level=error msg="error waiting for container: invalid character 'u' looking for beginning of value"
