@@ -7,8 +7,12 @@ const Service = {
   reportPrefix:"",
   status:"",
   tryWakeup:0,
+  shutdownNum:0,
   result: 2,
   consoleNum:0,
+  setResetButton(restartFun){
+    this.restartFun=restartFun
+  },
   logMonitor(page,keepalive,reportPrefix,inService, browser, video, saveVideo){
     this.inService=inService;
     this.keepalive=keepalive;
@@ -98,8 +102,9 @@ const Service = {
   setPopup(popup){
     this.popup=popup
   },
-  setPage(page){
+  setPage(page,browser){
     this.page=page
+    this.browser=browser
   },
   //task:{key,fun,onTime,timeout}
   addTask(task){
@@ -218,21 +223,28 @@ const Service = {
       timeout:Service.stdTimeout
     })
   },
+  insertHandleIdling(){
+    if(!Service.keepalive){
+      Service.idlingTimer=setTimeout(()=>{
+        Service.shutdown("No task to run")
+      },120000)
+    }
+  },
   init(){
     Service.insertStdTask("init")
-    
+    console.log(_formatTimestamp()+": init")
+    clearTimeout(Service.status)
     Service.status=setTimeout(()=>{
-      console.log("checking status ready")
-      if(Service.status!="ready"){
-        
-        Service.shutdown("Failed to load test: "+Service.status)
+      console.log(_formatTimestamp()+"checking status ready")
+      if(!Number.isNaN(parseInt(Service.status))){
+        Service.reset()
       }
-    },Service.stdTimeout)
+    },120000)
     
     Service.addTask({
       key:"ready",
       fun(){
-        clearTimeout(Service.status)
+//        clearTimeout(Service.status)
         Service.status="ready"
         console.log("Ready on logService")
         if(Service.beginningFun){
@@ -240,6 +252,9 @@ const Service = {
         // }else{
           // Service.setRunTasks()
         }
+        
+        Service.insertHandleIdling();
+
         if(Service.video && Service.video != "none"){
           Service.page.evaluate((v)=>{
             console.log("Initializing video capture...");
@@ -251,7 +266,26 @@ const Service = {
       timeout:Service.stdTimeout
     })
   },
+  reset(forKeep){
+    if(!forKeep){
+      if(Service.shutdownNum){
+        if(Date.now()-Service.shutdownNum<600000){
+          return Service.shutdown(_formatTimestamp()+": Failed to load IDE!")
+        }
+      }
+      Service.shutdownNum=Date.now()
+    }
+    console.log("shutdown ...")
+//        Service.page.close()
+    Service.browser.close()
+    setTimeout(()=>{
+      console.log("restart ...")
+      Service.restartFun()
+      Service.init()
+    },15000)
+  },
   setRunTasks(){
+    clearTimeout(Service.idlingTimer)
     if(Service.status=="run"){
       return
     }
@@ -453,11 +487,8 @@ const Service = {
         BZ.wakeup(timeout)
       },timeout)
       Service.wakeupTimer=setTimeout(()=>{
-        if(Service.keepalive){
-          Service.reloadIDE("No response from IDE. Shutting down...")
-        }else{
-          Service.shutdown("No response from IDE. Shutting down...")
-        }
+        Service.reloadIDE("No response from IDE! going to reset...")
+        Service.reset(Service.keepalive)
       },10000)
     }
   }
@@ -478,7 +509,7 @@ function _formatTimestamp(t,f){
     t=Date.now()
   }
   t=parseInt(t)
-  f=f||"hh:mm";
+  f=f||"hh:mm:ss";
   var d=new Date(t);
   var mp={
     y:d.getFullYear()+"",

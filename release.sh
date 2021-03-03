@@ -30,9 +30,9 @@ revision=`echo $version | cut -d. -f3`
 # tag it
 git add -A
 git commit -m "version $version"
-#git tag -a "$version" -m "version $version"
-#git push
-#git push --tags
+git tag -a "$version" -m "version $version"
+git push
+git push --tags
 
 docker tag $USERNAME/$IMAGE:latest $USERNAME/$IMAGE:$version
 docker tag $USERNAME/$IMAGE:latest $USERNAME/$IMAGE:$major
