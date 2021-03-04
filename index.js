@@ -19,7 +19,8 @@ const opts = {
   "width":1280,
   "height":1024,
   "docker": false,
-  "keepalive": false
+  "keepalive": false,
+  "testreset":false
 }
 
 // Remove the first two arguments, which are the 'node' binary and the name
@@ -33,12 +34,14 @@ const width = opts.width;
 const height = opts.height;
 const listscenarios=opts.listscenarios;
 const listsuite=opts.listsuite;
+
 let keepalive=opts.keepalive;
+let testReset=opts.testreset;
 let inService;
 const file = opts.file;
 
 if (result.errors || !result.args || result.args.length !== 1) {
-  console.log('USAGE: boozang [--token] [--docker] [--keepalive] [--verbose] [--userdatadir] [--listscenarios] [--listsuite] [--width] [--height] [--screenshot] [--file=report] [url]');
+  console.log('USAGE: boozang [--token] [--docker] [--keepalive] [--testreset] [--verbose] [--userdatadir] [--listscenarios] [--listsuite] [--width] [--height] [--screenshot] [--file=report] [url]');
   process.exit(2);
 }
 
@@ -46,11 +49,11 @@ console.log("Running with following args");
 console.log(opts);
 console.log("Example: Use --verbose for verbose logging (boolean example). Use --width=800 to override default width (value example.)");
 
-
+let browser;
 Service.setResetButton(function(s){
-  start()
+  start(1)
 });
-function start(){
+function start(reset){
   (async () => {
     
     let file = (docker ? "/var/boozang/" : "");
@@ -73,11 +76,13 @@ function start(){
       '--defaultViewport: null'
       ];
 
-    const browser = await puppeteer.launch({
-      headless: false,
-      userDataDir: userdatadir,
-      args: launchargs 
-    });
+    if(!browser||browser._closed){
+      browser = await puppeteer.launch({
+        headless: false,
+        userDataDir: userdatadir,
+        args: launchargs 
+      });
+    }
 
     function printStackTrace(app,err){
       console.error(
@@ -128,6 +133,9 @@ function start(){
       }
       url += "run"
     }
+    if(reset){
+      url=url.replace(/\/run$/,"/")
+    }
 
     let inService=0;
     console.log("Browser URL: "+url)
@@ -139,7 +147,7 @@ function start(){
     }
 
     // Assign all log listeners
-    Service.logMonitor(page,keepalive,file,inService);
+    Service.logMonitor(page,testReset,keepalive,file,inService);
 
     if(listsuite||listscenarios){
       Service.setBeginningFun(function(){
