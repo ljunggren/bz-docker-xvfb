@@ -12,9 +12,4 @@ USERNAME=styrman
 
 # image name
 IMAGE=boozang-runner-dev
-
-# run build
-./build-dev.sh
-
-# push it
-docker push $USERNAME/$IMAGE:latest
+docker build -t $USERNAME/$IMAGE:latest .
