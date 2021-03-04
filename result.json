@@ -1,0 +1,28 @@
+{
+  "extraInfo": [],
+  "result": {
+    "type": 1,
+    "summary": {
+      "failedAction": 0,
+      "failedTest": 0,
+      "test": 1,
+      "action": 3,
+      "time": 5778
+    }
+  },
+  "details": [
+    {
+      "result": 4,
+      "time": 1215,
+      "test": {
+        "name": "ddsf",
+        "code": "t2",
+        "actions": 3
+      },
+      "module": {
+        "name": "test",
+        "code": "m1"
+      }
+    }
+  ]
+}
