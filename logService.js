@@ -2,20 +2,28 @@ const fs = require('fs');
 
 const Service = {
   stdTimeout:120000,
+  issueResetCount:0,
   taskMap:{},
   timer:0,
   reportPrefix:"",
   status:"",
   tryWakeup:0,
-  shutdownNum:0,
+  lastHardResetTimer:0,
   result: 2,
   consoleNum:0,
   setResetButton(restartFun){
     this.restartFun=restartFun
   },
+  setNextResetTime:function(){
+    if(Service.testReset){
+      Service.nextResetTime=Date.now()+((parseInt(Service.testReset)||1)*60000)
+    }
+  },
   logMonitor(page,testReset,keepalive,reportPrefix,inService, browser, video, saveVideo){
     this.inService=inService;
     this.testReset=testReset;
+    Service.setNextResetTime()
+
     this.keepalive=keepalive;
     this.video=video;
     this.page=page;
@@ -175,7 +183,21 @@ const Service = {
       key:"coop-reload",
       fun(msg){
         Service.cancelChkCoop()
-        Service.init()
+        Service.reset(1)
+      },
+      timeout:Service.stdTimeout
+    })
+
+    Service.addTask({
+      key:"coop-issue-reset",
+      fun(msg){
+        Service.issueResetCount++
+        if(Service.issueResetCount>2){
+          Service.shutdown(_formatTimestamp()+": Issue happened multiple times!")
+        }else{
+          Service.cancelChkCoop()
+          Service.reset()
+        }
       },
       timeout:Service.stdTimeout
     })
@@ -267,15 +289,16 @@ const Service = {
     })
   },
   reset(forKeep){
+    Service.setNextResetTime()
     if(!forKeep){
-      if(Service.shutdownNum){
-        if(Date.now()-Service.shutdownNum<600000){
+      if(Service.lastHardResetTimer){
+        if(Date.now()-Service.lastHardResetTimer<600000){
           return Service.shutdown(_formatTimestamp()+": Failed to load IDE!")
         }
       }
-      Service.shutdownNum=Date.now()
+      Service.lastHardResetTimer=Date.now()
     }
-    console.log("shutdown ...")
+    console.log("reset ...")
 //        Service.page.close()
     if(forKeep){
       Service.page.close()
@@ -377,7 +400,9 @@ const Service = {
     Service.addTask({
       key:"The Task Completed!",
       fun(msg){
-        if(Service.testReset){
+        Service.lastHardResetTimer=0
+        if(Service.nextResetTime&&(Date.now()>=Service.nextResetTime)){
+          console.log("Reset in schedule")
           Service.reset(1)
         }else{
           Service.setRunTasks()
