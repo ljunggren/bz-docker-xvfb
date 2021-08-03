@@ -1,4 +1,5 @@
 const fs = require('fs');
+const killer = require('tree-kill');
 
 const Service = {
   stdTimeout:120000,
@@ -33,13 +34,13 @@ const Service = {
     this.logLevel=logLevel;
 
     if (this.video && this.video != "none") {
-      console.log("Running in video mode");
+      Service.consoleMsg("Running in video mode");
     }
 
-    console.log("Initializing logMonitor");
+    Service.consoleMsg("Initializing logMonitor");
    
     if (reportPrefix) {
-      console.log("Override report prefix: " + reportPrefix);
+      Service.consoleMsg("Override report prefix: " + reportPrefix);
       Service.reportPrefix=reportPrefix + "_";
     } 
 
@@ -56,7 +57,7 @@ const Service = {
         return
       }
       // Todo add noLog conditions
-      // console.log(msg);
+      // Service.consoleMsg(msg);
       
       if(Service.curTask){
         t=Service.curTask
@@ -72,9 +73,9 @@ const Service = {
           }
         }
       }
-      //console.log("Type: " + msgType);
+      //Service.consoleMsg("Type: " + msgType);
       if ((!t || !t.noLog) && Service.logLevel.includes(msgType)){
-        console.log((Service.consoleNum++)+": "+msg)
+        Service.consoleMsg(msg)
       }
       if(t){
         if(t.notimeout){
@@ -83,11 +84,11 @@ const Service = {
         clearTimeout(Service.timer)
         if(!t.timeout){
           timeout=t.fun(msg)||Service.stdTimeout
-          //console.log("Get timeout: "+timeout);
+          //Service.consoleMsg("Get timeout: "+timeout);
         }else{
           timeout=t.timeout
         }
-        //console.log("set timeout: "+t.key+":"+timeout)
+        //Service.consoleMsg("set timeout: "+t.key+":"+timeout)
         Service.timer=setTimeout(()=>{
           if(Service.curProcess!="init"){
             Service.handleTimeout(timeout,"Timeout on: "+t.key+":"+timeout)
@@ -131,17 +132,40 @@ const Service = {
     delete this.taskMap[task.key]
   },
   insertStdTask(p){
-    console.log("In "+p+" task processing")
+    Service.consoleMsg("In "+p+" task processing")
     Service.curProcess=p
     Service.taskMap={}
     Service.inChkCoop=0
     Service.coopAnswerList=[]
     clearTimeout(Service.coopAnswerTimer)
     Service.addTask({
+      key:"Coop-Status:",
+      fun:function(v){
+        v=v.split(":")[1].trim()
+        if(v=="declare"){
+          Service.tryWakeup=0
+        }
+        
+        Service.curWorkerStatus=v
+        Service.consoleMsg("++++++++++++++++Status: "+v)
+      },
+      timeout:Service.stdTimeout
+    })
+    Service.addTask({
       key:"I-AM-OK",
       fun:function(){
         clearTimeout(Service.wakeupTimer)
         Service.tryWakeup++
+      },
+      timeout:Service.stdTimeout
+    })
+    Service.addTask({
+      key:"Reset-Sys-Timer:",
+      fun:function(v){
+        v=v.split("Reset-Sys-Timer:")[1].trim()
+        if(v){
+          eval(v)
+        }
       },
       timeout:Service.stdTimeout
     })
@@ -163,7 +187,7 @@ const Service = {
       key:"update-std-timeout:",
       fun(msg){
         Service.stdTimeout = (parseInt(msg.split(this.key)[1].trim())||120000);
-        console.log("Setting std timeout to: " + Service.stdTimeout);
+        Service.consoleMsg("Setting std timeout to: " + Service.stdTimeout);
         return Service.stdTimeout;
       },
       msg:"Standard timeout"
@@ -222,7 +246,7 @@ const Service = {
       key:"center-exe:",
       fun(msg){
         msg=msg.substring(11)
-        console.log(msg)
+        Service.consoleMsg(msg)
         try{
           eval(msg);
         }catch(e){}
@@ -234,7 +258,7 @@ const Service = {
       key:"app-exe:",
       fun(msg){
         msg=msg.substring(8)
-        console.log(msg)
+        Service.consoleMsg(msg)
         Service.popup.evaluate((msg)=>{ 
           eval(msg);  
         },msg);
@@ -246,7 +270,7 @@ const Service = {
       key:"ide-exe:",
       fun(msg){
         msg=msg.substring(8)
-        console.log(msg)
+        Service.consoleMsg(msg)
         Service.page.evaluate((msg)=>{
           eval(msg);
         },msg);
@@ -258,15 +282,20 @@ const Service = {
     if(!Service.keepalive){
       clearTimeout(Service.idlingTimer)
       Service.idlingTimer=setTimeout(()=>{
-        Service.shutdown("No task to run")
+        if(Service.curWorkerStatus=="declare"){
+          Service.insertHandleIdling();
+          Service.wakeupIDE()
+        }else{
+          Service.shutdown("Shutdown: No task to run")
+        }
       },120000)
     }
   },
   init(){
     Service.insertStdTask("init")
-    console.log(_formatTimestamp()+": init")
+    Service.consoleMsg("init")
     Service.setStatus(setTimeout(()=>{
-      console.log(_formatTimestamp()+": checking status ready, status: "+Service.status)
+      Service.consoleMsg("checking status ready, status: "+Service.status)
       if(!Number.isNaN(parseInt(Service.status))){
         Service.reset()
       }
@@ -276,7 +305,7 @@ const Service = {
       key:"ready",
       fun(){
         Service.setStatus("ready")
-        console.log("Ready on logService")
+        Service.consoleMsg("Ready on logService")
         if(Service.beginningFun){
           Service.beginningFun()
         // }else{
@@ -287,7 +316,7 @@ const Service = {
 
         if(Service.video && Service.video != "none"){
           Service.page.evaluate((v)=>{
-            console.log("Initializing video capture...");
+            Service.consoleMsg("Initializing video capture...");
             BZ.requestVideo()
           });
         }
@@ -305,17 +334,39 @@ const Service = {
       timeout:Service.stdTimeout
     })
   },
+  /*new*
   reset(forKeep){
     Service.setNextResetTime()
     if(!forKeep){
       if(Service.lastHardResetTimer){
         if(Date.now()-Service.lastHardResetTimer<600000){
-          return Service.shutdown(_formatTimestamp()+": Failed to load IDE!")
+          return Service.shutdown("Failed to load IDE!")
         }
       }
       Service.lastHardResetTimer=Date.now()
     }
-    console.log("reset ...")
+    Service.consoleMsg("reset ...")
+    Service.browser._closed=1
+    killer(Service.browser.process().pid, 'SIGKILL');
+    setTimeout(()=>{
+      Service.consoleMsg("restart ...")
+      Service.restartFun(forKeep)
+      Service.init()
+    },forKeep?1000:15000)
+  },
+  /*old*/
+  reset(forKeep){
+    //return
+    Service.setNextResetTime()
+    if(!forKeep){
+      if(Service.lastHardResetTimer){
+        if(Date.now()-Service.lastHardResetTimer<600000){
+          return Service.shutdown("Failed to load IDE!")
+        }
+      }
+      Service.lastHardResetTimer=Date.now()
+    }
+    Service.consoleMsg("reset ...")
 //        Service.page.close()
     if(forKeep){
       Service.page.close()
@@ -324,17 +375,18 @@ const Service = {
       Service.browser.close()
     }
     setTimeout(()=>{
-      console.log("restart ...")
+      Service.consoleMsg("restart ...")
       Service.restartFun(forKeep)
       Service.init()
     },forKeep?1000:15000)
   },
+  /**/
   setStatus(v){
     clearTimeout(Service.status)
     Service.status=v
   },
   setRunTasks(){
-    console.log("Set run tasks")
+    Service.consoleMsg("Set run tasks")
     clearTimeout(Service.idlingTimer)
     if(Service.status=="run"){
       return
@@ -343,7 +395,7 @@ const Service = {
     Service.setStatus("run")
 
     Service.addTask({
-      key:"ms:",
+      key:"timeout in ms:",
       fun(msg){
         let v= (parseInt(msg.split(this.key)[1].trim())||0) + Service.stdTimeout;
         return v;
@@ -356,7 +408,7 @@ const Service = {
       fun(msg){
         (async () => {
           let videoFile = msg.split("videostart:")[1].split(",")[0]+".mp4";
-           console.log("Start recording video: ", videoFile);
+           Service.consoleMsg("Start recording video: ", videoFile);
            Service.capture = await Service.saveVideo(Service.popup||Service.page, Service.reportPrefix + videoFile, {followPopups:true, fps: 5});      
         })()
       },
@@ -369,10 +421,10 @@ const Service = {
         (async () => {
           let success = msg.includes(",success");
           let videoFile = msg.split("videostop:")[1].split(",")[0]+".mp4";
-          console.log("Stop recording video: ", videoFile);
+          Service.consoleMsg("Stop recording video: ", videoFile);
           await Service.capture.stop();
           if (success && Service.video != "all"){
-            console.log("Test success. Deleting video: " + videoFile);
+            Service.consoleMsg("Test success. Deleting video: " + videoFile);
             fs.unlinkSync(Service.reportPrefix + videoFile);
           }
           await (()=>{
@@ -408,9 +460,9 @@ const Service = {
     Service.addTask({
       key:"Result:",
       fun(msg){
-        msg=msg.split("Result:")[1].trim()
+        msg=msg.split("BZ-Result:")[1].trim()
         Service.result = msg == "Success" ? 0:2;
-        console.log("Exit with status code: ", Service.result);
+        Service.consoleMsg("Exit with status code: ", Service.result);
       },
       timeout:Service.stdTimeout
     })
@@ -419,7 +471,7 @@ const Service = {
       fun(msg){
         Service.lastHardResetTimer=0
         if(Service.nextResetTime&&(Date.now()>=Service.nextResetTime)){
-          console.log("Reset in schedule")
+          Service.consoleMsg("Reset in schedule")
           Service.reset(1)
         }else{
           Service.setRunTasks()
@@ -442,7 +494,7 @@ const Service = {
             if (err) {
               Service.shutdown("Error: on output file: "+name+", "+ err.message)
             }
-            console.log("Report "+name+" saved.")
+            Service.consoleMsg("Report "+name+" saved.")
             if(exFun){
               exFun()
             }
@@ -482,7 +534,7 @@ const Service = {
         Service.getCoopStatus()
       },60000)
     }else{
-      console.log("Checking coop status")
+      Service.consoleMsg("Checking coop status")
       let v1=Service.coopAnswerList[0],
           v2=Service.coopAnswerList[1]
 
@@ -517,7 +569,7 @@ const Service = {
     })
   },
   async reloadIDE(msg){
-    console.log("Reload IDE for "+msg)
+    Service.consoleMsg("Reload IDE for "+msg)
     Service.page.evaluate(()=>{  
       localStorage.setItem("bz-reboot",1)
     });
@@ -526,12 +578,14 @@ const Service = {
     Service.init() 
   },
   shutdown(msg){
-    msg && console.log(msg)
+    //return
+    msg && Service.consoleMsg(msg)
+    killer(Service.browser.process().pid, 'SIGKILL');
     process.exit(Service.result)
   },
   async handleTimeout(timeout,msg){
-    console.log(getCurrentTimeString()+": "+msg)
-    console.log(_formatTimestamp()+ " Try to wakeup IDE");
+    Service.consoleMsg(getCurrentTimeString()+": "+msg)
+    Service.consoleMsg("Try to wakeup IDE");
     Service.wakeupIDE(timeout)
   },
   wakeupIDE:function(timeout){
@@ -539,6 +593,9 @@ const Service = {
       Service.page.evaluate(()=>{  
         BZ.e("BZ-LOG: Wake-up IDE failed. Test runner telling BZ to stop.");
       });
+      setTimeout(()=>{
+        Service.shutdown("Shutdown on no reaction from IDE!")
+      },120000)
     }else{
       Service.page.evaluate((timeout)=>{
         BZ.wakeup(timeout)
@@ -548,51 +605,67 @@ const Service = {
         Service.reset(Service.keepalive)
       },10000)
     }
+  },
+  lastMsg:{},
+  lastTime:0,
+  consoleMsg:function(msg,type,scope){
+    lastMsg=this.lastMsg
+    if(lastMsg.msg==msg&&lastMsg.type==type&&lastMsg.scope==scope){
+      lastMsg.count++
+    }else{
+      if(lastMsg.count){
+        if(lastMsg.scope){
+          console.error(
+            "\n####"+getCurrentTimeString()+"####\n"
+            + lastMsg.scope + " repeat: " + (".".repeat(lastMsg.count))
+            + "\n################\n"
+          )
+        }else{
+          console.log("repeat: "+(".".repeat(lastMsg.count)))
+        }
+      }
+      this.lastMsg=lastMsg={
+        msg:msg,
+        type:type,
+        scope:scope,
+        count:0
+      }
+      if(lastMsg.scope){
+        console.error(
+          "\n####"+getCurrentTimeString()+"####\n"
+          + lastMsg.scope + " error: " + msg
+          + "\n################\n"
+        )
+      }else{
+        Service.consoleNum++
+        if(Date.now()-Service.lastTime>1000){
+          let n=parseInt((Date.now()-Service.lastTime)/1000)
+          let w="+"
+          if(Service.lastTime){
+            w=w.repeat(n)
+            n=" ("+n+"s) "
+          }else{
+            w=""
+            n=""
+          }
+          console.log("\n..........[ "+getCurrentTimeString()+n+w+" ]..........\n")
+          Service.lastTime=Date.now()
+        }
+        console.log(msg=Service.consoleNum+": "+msg)
+      }
+    }
   }
 }
+
 Service.init()
 
+exports.Service = Service;
 
 function getCurrentTimeString(){
   let d=new Date()
-  return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()+'-'+d.getHours()+'-'+d.getMinutes()+"-"+d.getSeconds()
+  return _formatNumberLength(d.getHours())+':'+_formatNumberLength(d.getMinutes())+":"+_formatNumberLength(d.getSeconds())
 }
-exports.Service = Service;
 
-function _formatTimestamp(t,f){
-  t=t||Date.now()
-  if(t.constructor==String&&!$.isNumeric(t)){
-    f=t
-    t=Date.now()
-  }
-  t=parseInt(t)
-  f=f||"hh:mm:ss";
-  var d=new Date(t);
-  var mp={
-    y:d.getFullYear()+"",
-    M:_formatNumberLength(d.getMonth()+1),
-    d:_formatNumberLength(d.getDate()),
-    h:_formatNumberLength(d.getHours()),
-    m:_formatNumberLength(d.getMinutes()),
-    s:_formatNumberLength(d.getSeconds())
-  }
-  for(var k in mp){
-    var r= new RegExp("["+k+"]+"),
-        v=mp[k]
-    
-    r=f.match(r)
-    if(r){
-      r=r[0]
-      if(k=="y"){
-        v=v.substring(v.length-r.length)
-      }else if(r.length==1){
-        v=parseInt(v)+""
-      }
-      f=f.replace(r,v)
-    }
-  }
-  return f
-}
 function _formatNumberLength(v,l){
   l=l||2;
   v=v+"";
@@ -600,4 +673,19 @@ function _formatNumberLength(v,l){
     v="0"+v;
   }
   return v;
+}
+
+//testReset()
+function testReset(){
+  setTimeout(()=>{
+    try{
+      console.log("Do reset ---------------------------------------------------------------------------")
+      if(Service.page){
+        Service.reset(1)
+      }else{
+        console.log("wait to reset++++++++++++++++++")
+      }
+    }catch(ex){}
+    testReset()
+  },30000)
 }

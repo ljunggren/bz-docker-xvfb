@@ -2,6 +2,9 @@ let _appUrl="https:/"+"/ai.boozang.com",_masterTabId,_masterFrameId,_masterUrl,_
 let _lastErrPage=0,_loadPageInfo,assignfirmeCall,ignoreReqs="",_topFrameId,_uncodeFrames=[];
 let _ignoreList=["https://vars.hotjar.com"],_lastIframeRequest=0,_dblCheckTime=0;
 let funMap={
+  cleanMaster:function(){
+    cleanMaster()
+  },
   // storeEventGroupData:function(bkScope,bkFun,data){
     // for(var k in data){
       // _lastExeActionReq[k]=data[k]
@@ -54,6 +57,7 @@ let funMap={
     }
   },
   enableAllIframe:function(){
+    _initFrame(0)
     _uncodeFrames.forEach(f=>{_initFrame(f)})
   },
   ajax:function(scope,fun,data,_callback){
@@ -195,7 +199,8 @@ chrome.runtime.onMessageExternal.addListener(function(_req, _sender, _callback) 
     _plugInCode=_req.bzCode;
     _lastExeActionReq=0;
     ignoreReqs="";
-    _setCodeToContent("window.close();",_topFrameId);
+    _callback(1)
+    // _setCodeToContent("window.close();",_topFrameId);
   //Set CSS file path from BZ master page
   }else if(_req.bzCss){
     _css=_req.bzCss;
@@ -288,12 +293,12 @@ function _addFrameId(_req,_element,_fun,_retry){
   if(_req.exeAction){
     _badRequest=setTimeout(function(){
       _appRetry++
-      if(_appRetry>30){
+      if(_appRetry*1000>(_req.exeAction.max||_req.exAction.min||2000)){
         _fun(_req)
       }else{
         _addFrameId(_req,_element,_fun,_appRetry)
       }
-    },2000)
+    },1000)
   }
   let v=getIframePath(_element)
   if(v){
@@ -357,7 +362,7 @@ function dblCheckForIframe(){
     }else{
       console.log("dblCheckForIframe doesn't work....")
     }
-  },10000)
+  },3000)
 }
 //to get frame ids by element path
 function _getFrameIds(_root){
@@ -425,6 +430,9 @@ chrome.runtime.onMessage.addListener(function(_msg, t, _sendResponse) {
     return funMap[_msg.fun](_msg.bkScope,_msg.bkFun,_msg.data,t)
   }else if(_msg._registerTab && (_msg.name=="bz-client"||_ctrlTabId==t.tab.id)){
     if(_msg.name=="bz-client"){
+      if(!_plugInCode){
+        chrome.tabs.sendMessage(_masterTabId, {tab:"master",scope:"_extensionComm",fun:"_loadPlugCode"});
+      }
       _ctrlTabId=t.tab.id;
       _ctrlWindowId=t.tab.windowId;
       if(_ctrlTabId==_masterTabId){
@@ -696,6 +704,7 @@ function cleanMaster(){
   _isExistTab(tabId,function(){
     _setCodeToContent("window.close();",_topFrameId,tabId);
   })
+  _status=""
   _masterTabId=0;
   _masterFrameId=0;
   _shareData={}
