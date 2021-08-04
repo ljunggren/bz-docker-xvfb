@@ -147,7 +147,7 @@ const Service = {
         }
         
         Service.curWorkerStatus=v
-        Service.consoleMsg("++++++++++++++++Status: "+v)
+        Service.consoleMsg("IDE Status: "+v)
       },
       timeout:Service.stdTimeout
     })
@@ -156,16 +156,6 @@ const Service = {
       fun:function(){
         clearTimeout(Service.wakeupTimer)
         Service.tryWakeup++
-      },
-      timeout:Service.stdTimeout
-    })
-    Service.addTask({
-      key:"Reset-Sys-Timer:",
-      fun:function(v){
-        v=v.split("Reset-Sys-Timer:")[1].trim()
-        if(v){
-          eval(v)
-        }
       },
       timeout:Service.stdTimeout
     })
@@ -278,6 +268,7 @@ const Service = {
       timeout:Service.stdTimeout
     })
   },
+  idlingTimerValue:300000,
   insertHandleIdling(){
     if(!Service.keepalive){
       clearTimeout(Service.idlingTimer)
@@ -288,7 +279,8 @@ const Service = {
         }else{
           Service.shutdown("Shutdown: No task to run")
         }
-      },120000)
+      },Service.idlingTimerValue)
+      Service.idlingTimerValue=120000
     }
   },
   init(){
@@ -356,7 +348,9 @@ const Service = {
   },
   /*old*/
   reset(forKeep){
-    //return
+    if(Service.debugIDE){
+      return
+    }
     Service.setNextResetTime()
     if(!forKeep){
       if(Service.lastHardResetTimer){
@@ -578,7 +572,9 @@ const Service = {
     Service.init() 
   },
   shutdown(msg){
-    //return
+    if(Service.debugIDE){
+      return
+    }
     msg && Service.consoleMsg(msg)
     killer(Service.browser.process().pid, 'SIGKILL');
     process.exit(Service.result)
@@ -608,6 +604,7 @@ const Service = {
   },
   lastMsg:{},
   lastTime:0,
+  lanuchTest:0,
   startTime:Date.now(),
   consoleMsg:function(msg,type,scope){
     lastMsg=this.lastMsg
@@ -638,8 +635,14 @@ const Service = {
           + "\n################\n"
         )
       }else{
-        Service.consoleNum++
-        if(Date.now()-Service.lastTime>1000){
+        Service.consoleNum++;
+        if(msg.trim().match(/^<<<</)){
+          Service.lanuchTest--
+          msg=" ".repeat(Service.lanuchTest*2)+msg
+        }else if(msg.trim().match(/^>>>>/)){
+          msg=" ".repeat(Service.lanuchTest*2)+msg
+          Service.lanuchTest++
+        }else if(Date.now()-Service.lastTime>1000){
           let n=parseInt((Date.now()-Service.lastTime)/1000)
           let w="+"
           let s=formatPeriod(Date.now()-Service.startTime)
@@ -650,7 +653,7 @@ const Service = {
             w=""
             n=""
           }
-          console.log("\n..........[ "+getCurrentTimeString()+n+w+" ]..........\n")
+          console.log("\n     [ "+getCurrentTimeString()+n+w+" ]\n")
           Service.lastTime=Date.now()
         }
         console.log(msg=Service.consoleNum+": "+msg)
