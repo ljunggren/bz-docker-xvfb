@@ -27,13 +27,6 @@ revision=`echo $version | cut -d. -f3`
 # run build
 ./build.sh
 
-# tag it
-git add -A
-git commit -m "version $version"
-git tag -a "$version" -m "version $version"
-git push
-git push --tags
-
 docker tag $USERNAME/$IMAGE:latest $USERNAME/$IMAGE:$version
 docker tag $USERNAME/$IMAGE:latest $USERNAME/$IMAGE:$major
 docker tag $USERNAME/$IMAGE:latest $USERNAME/$IMAGE:$major.$minor
@@ -44,3 +37,9 @@ docker push $USERNAME/$IMAGE:$version
 docker push $USERNAME/$IMAGE:$major
 docker push $USERNAME/$IMAGE:$major.$minor
 
+# tag it
+git add -A
+git commit -m "version $version"
+git tag -a "$version" -m "version $version"
+git push
+git push --tags
