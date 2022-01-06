@@ -9,7 +9,7 @@ $("#formatPage").click(()=>{
       id:v[0].id,
       data:bzFormat
     }});
-    
+    window.close();
   });
 });
 $("#orgPage").click(()=>{
@@ -19,6 +19,7 @@ $("#orgPage").click(()=>{
       id:v[0].id,
       data:bzFormat
     }});
+    window.close();
   });
 })
 $("#infoTab").click(function(){
@@ -26,12 +27,16 @@ $("#infoTab").click(function(){
   $("#log-panel").hide()
   $("#logTab").removeClass("bz-active")
   $(this).addClass("bz-active")
+  bzFormat.defTab="info"
+  updateSetting()
 });
 $("#logTab").click(function(){
   $("#log-panel").show()
   $("#info-panel").hide()
   $("#infoTab").removeClass("bz-active")
   $(this).addClass("bz-active")
+  bzFormat.defTab="log"
+  updateSetting()
 })
 
 function getPageInfo(){
@@ -53,7 +58,9 @@ function init(){
     console.log(JSON.stringify(d))
     if(!d||!Object.keys(d).length){
       bzFormat={
-        testTime:180,
+        defTab:"info",
+        scenarioTime:180,
+        testTime:60,
         actionTime:3,
         declareTime:6,
         initTime:2,
@@ -72,26 +79,32 @@ function init(){
     if(d["bz-log-format"]){
       bzFormat=JSON.parse(d["bz-log-format"])
     }
-    
+    if(!bzFormat.scenarioTime){
+      bzFormat.scenarioTime=180
+      if(bzFormat.testTime==180){
+        bzFormat.testTime=60
+      }
+    }
     $("#autoFormat").attr("checked",bzFormat.autoFormat);
     $("#retrieveWorkerLog").attr("checked",bzFormat.retrieveWorkerLog);
     
     $("#identifyMaster").val(bzFormat.identifyMaster)
     $("#identifyWorker").val(bzFormat.identifyWorker)
+    $("#scenarioTime").val(bzFormat.scenarioTime);
     $("#testTime").val(bzFormat.testTime);
     $("#declareTime").val(bzFormat.declareTime);
     $("#initTime").val(bzFormat.initTime);
     $("#actionTime").val(bzFormat.actionTime)
     updateSetting()
-    $("#testTime,#declareTime,#initTime,#actionTime,#identifyMaster,#identifyWorker").blur(function(){
+    $("#scenarioTime,#testTime,#declareTime,#initTime,#actionTime,#identifyMaster,#identifyWorker").blur(function(){
       updateSetting()
     })
-    $("#autoFormat").click(function(){
+    $("#autoFormat,#retrieveWorkerLog").click(function(){
       updateSetting()
     })
-    $("#retrieveWorkerLog").click(function(){
-      updateSetting()
-    })
+    if(bzFormat.defTab=="log"){
+      $("#logTab").click()
+    }
   })
 
 }
@@ -112,6 +125,7 @@ function updateSetting(){
   }else{
     $("#workerScriptPanel").hide()
   }
+  bzFormat.scenarioTime=$("#scenarioTime").val()
   bzFormat.testTime=$("#testTime").val()
   bzFormat.declareTime=$("#declareTime").val()
   bzFormat.initTime=$("#initTime").val()
