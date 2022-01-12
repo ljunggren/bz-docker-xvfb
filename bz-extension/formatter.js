@@ -1,4 +1,5 @@
 var formatter={
+  compareFileIdx:1,
   idx:0,
   cameraList:[],
   chking:30,
@@ -8,12 +9,32 @@ var formatter={
     let s=document.createElement("style")
     document.body.append(s)
     s.innerText=`
+
+.body{
+  color: #363D4A;
+  font-size: 13px;
+}
+.disable-select{
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
 .bz-download { background-image: url('data:image/svg+xml;charset%3DUS-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2020%2018.928%22%3E%20%20%3Cdefs%3E%20%20%20%20%3Cstyle%3E%20%20%20%20%20%20.cls-1%20%7B%20%20%20%20%20%20%20%20fill%3A%20%23363d4a%3B%20%20%20%20%20%20%7D%20%20%20%20%3C%2Fstyle%3E%20%20%3C%2Fdefs%3E%20%20%3Cg%20id%3D%22download%22%20transform%3D%22translate%28-6.41%20-6.946%29%22%3E%20%20%20%20%3Cpath%20id%3D%22Path_497%22%20data-name%3D%22Path%20497%22%20class%3D%22cls-1%22%20d%3D%22M12.692%2C18.139a.769.769%2C0%2C1%2C1%2C1.088-1.088l1.861%2C1.861V7.716a.769.769%2C0%2C1%2C1%2C1.538%2C0v11.2l1.861-1.861a.769.769%2C0%2C1%2C1%2C1.088%2C1.088l-3.174%2C3.174a.769.769%2C0%2C0%2C1-.252.167l-.012%2C0a.751.751%2C0%2C0%2C1-.561%2C0l-.012%2C0a.769.769%2C0%2C0%2C1-.252-.167ZM25.641%2C20a.769.769%2C0%2C0%2C0-.769.769v3.566H7.949V20.769a.769.769%2C0%2C1%2C0-1.538%2C0V25.1a.769.769%2C0%2C0%2C0%2C.769.769H25.641a.769.769%2C0%2C0%2C0%2C.769-.769V20.769A.769.769%2C0%2C0%2C0%2C25.641%2C20Z%22%2F%3E%20%20%3C%2Fg%3E%3C%2Fsvg%3E')!important; background-repeat: no-repeat; }
 .bz-copy { background-image: url('data:image/svg+xml;charset%3DUS-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2018.4%2018.4%22%3E%20%20%3Cdefs%3E%20%20%20%20%3Cstyle%3E%20%20%20%20%20%20.cls-1%20%7B%20%20%20%20%20%20%20%20fill%3A%20%230069ff%3B%20%20%20%20%20%20%20%20stroke%3A%20%230069ff%3B%20%20%20%20%20%20%20%20stroke-width%3A%200.4px%3B%20%20%20%20%20%20%7D%20%20%20%20%3C%2Fstyle%3E%20%20%3C%2Fdefs%3E%20%20%3Cg%20id%3D%22copy-strong%22%20transform%3D%22translate%280.2%200.2%29%22%3E%20%20%20%20%3Cpath%20id%3D%22Path_31%22%20data-name%3D%22Path%2031%22%20class%3D%22cls-1%22%20d%3D%22M11.25%2C4.5V0H3.375L0%2C3.375V13.5H6.75V18H18V4.5ZM3.375%2C1.591V3.375H1.591ZM1.125%2C12.375V4.5H4.5V1.125h5.625V4.5L6.75%2C7.875v4.5Zm9-6.284V7.875H8.341Zm6.75%2C10.784h-9V9H11.25V5.625h5.625Z%22%2F%3E%20%20%3C%2Fg%3E%3C%2Fsvg%3E')!important; background-repeat: no-repeat; }
 .bz-analyze:before {
   content:"📋";
 }
 .bz-new-bug { background-image: url('data:image/svg+xml;charset%3DUS-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2220.2%22%20height%3D%2220.003%22%20viewBox%3D%220%200%2020.2%2020.003%22%3E%20%20%3Cg%20id%3D%22root-cause%22%20transform%3D%22translate%28-4.916%20-5.373%29%22%3E%20%20%20%20%3Crect%20id%3D%22Rectangle_216%22%20data-name%3D%22Rectangle%20216%22%20width%3D%226.037%22%20height%3D%221.006%22%20transform%3D%22translate%2811.255%209.699%29%22%20fill%3D%22%23363d4a%22%20stroke%3D%22%23363d4a%22%20stroke-width%3D%220.2%22%2F%3E%20%20%20%20%3Cpath%20id%3D%22Path_570%22%20data-name%3D%22Path%20570%22%20d%3D%22M8.276%2C11.507%2C9%2C10.785l.722.721.569-.569-.722-.721.722-.722L9.72%2C8.925%2C9%2C9.646l-.721-.721-.57.569.722.722-.722.722Z%22%20fill%3D%22%23363d4a%22%20stroke%3D%22%23363d4a%22%20stroke-width%3D%220.2%22%2F%3E%20%20%20%20%3Cpath%20id%3D%22Path_571%22%20data-name%3D%22Path%20571%22%20d%3D%22M9.921%2C13.377%2C8.669%2C14.629l-.594-.593-.569.569%2C1.163%2C1.163%2C1.821-1.822Z%22%20fill%3D%22%23363d4a%22%20stroke%3D%22%23363d4a%22%20stroke-width%3D%220.2%22%2F%3E%20%20%20%20%3Cpath%20id%3D%22Path_572%22%20data-name%3D%22Path%20572%22%20d%3D%22M8.075%2C18.467l-.569.569L8.669%2C20.2l1.821-1.822-.569-.569L8.669%2C19.061Z%22%20fill%3D%22%23363d4a%22%20stroke%3D%22%23363d4a%22%20stroke-width%3D%220.2%22%2F%3E%20%20%20%20%3Cpath%20id%3D%22Path_573%22%20data-name%3D%22Path%20573%22%20d%3D%22M6.525%2C23.082V6.982H19.606v5.744a1.7%2C1.7%2C0%2C0%2C1%2C1.034-.35%2C1.722%2C1.722%2C0%2C0%2C1%2C.476.068V6.479A1.009%2C1.009%2C0%2C0%2C0%2C20.11%2C5.473H6.022A1.009%2C1.009%2C0%2C0%2C0%2C5.016%2C6.479V23.585a1.009%2C1.009%2C0%2C0%2C0%2C1.006%2C1.006h6.411a1.705%2C1.705%2C0%2C0%2C1%2C.384-1.509Z%22%20fill%3D%22%23363d4a%22%20stroke%3D%22%23363d4a%22%20stroke-width%3D%220.2%22%2F%3E%20%20%20%20%3Cpath%20id%3D%22Path_574%22%20data-name%3D%22Path%20574%22%20d%3D%22M11.255%2C19.56h1.028a1.7%2C1.7%2C0%2C0%2C1%2C1.306-.615h.257c.007-.018.014-.036.02-.054l-.358-.337H11.255Z%22%20fill%3D%22%23363d4a%22%20stroke%3D%22%23363d4a%22%20stroke-width%3D%220.2%22%2F%3E%20%20%20%20%3Cpath%20id%3D%22Path_575%22%20data-name%3D%22Path%20575%22%20d%3D%22M16.007%2C14.737a1.736%2C1.736%2C0%2C0%2C1-.121-.611H11.255v1.007h4.513A3.527%2C3.527%2C0%2C0%2C1%2C16.007%2C14.737Z%22%20fill%3D%22%23363d4a%22%20stroke%3D%22%23363d4a%22%20stroke-width%3D%220.2%22%2F%3E%20%20%20%20%3Cpath%20id%3D%22Path_576%22%20data-name%3D%22Path%20576%22%20d%3D%22M14.492%2C16.608a.379.379%2C0%2C0%2C0-.533.539l.9.848c.071.071.167.055.267.055h.734a4.855%2C4.855%2C0%2C0%2C0-.993%2C2.229h-1.28a.394.394%2C0%2C0%2C0%2C0%2C.787h1.224a3.964%2C3.964%2C0%2C0%2C0%2C.462%2C1.836H15a.4.4%2C0%2C0%2C0-.267.129l-.9.913a.381.381%2C0%2C0%2C0%2C0%2C.537.377.377%2C0%2C0%2C0%2C.266.112.372.372%2C0%2C0%2C0%2C.266-.11l.792-.794h.608a4.355%2C4.355%2C0%2C0%2C0%2C3.085%2C1.581V17.394H15.283Z%22%20fill%3D%22%23363d4a%22%20stroke%3D%22%23363d4a%22%20stroke-width%3D%220.2%22%2F%3E%20%20%20%20%3Cpath%20id%3D%22Path_577%22%20data-name%3D%22Path%20577%22%20d%3D%22M24.64%2C20.279H23.333a5.831%2C5.831%2C0%2C0%2C0-1.072-2.229h.84c.1%2C0%2C.2.017.267-.053l.9-.876a.359.359%2C0%2C0%2C0%2C0-.518.376.376%2C0%2C0%2C0-.533%2C0l-.791.793H19.377v7.874a4.914%2C4.914%2C0%2C0%2C0%2C3.064-1.579h.629l.792.8a.376.376%2C0%2C1%2C0%2C.533-.531l-.9-.922a.4.4%2C0%2C0%2C0-.267-.129h-.288a3.919%2C3.919%2C0%2C0%2C0%2C.468-1.836h1.233a.394.394%2C0%2C0%2C0%2C0-.787Z%22%20fill%3D%22%23363d4a%22%20stroke%3D%22%23363d4a%22%20stroke-width%3D%220.2%22%2F%3E%20%20%20%20%3Cpath%20id%3D%22Path_578%22%20data-name%3D%22Path%20578%22%20d%3D%22M16.678%2C16.869h4.873a2.335%2C2.335%2C0%2C0%2C0-1.139-2.04l.492-.482a.371.371%2C0%2C0%2C0%2C0-.528.377.377%2C0%2C0%2C0-.533%2C0l-.711.713a2.375%2C2.375%2C0%2C0%2C0-1.091%2C0l-.711-.712a.377.377%2C0%2C0%2C0-.533.533l.492.472A2.336%2C2.336%2C0%2C0%2C0%2C16.678%2C16.869Z%22%20fill%3D%22%23363d4a%22%20stroke%3D%22%23363d4a%22%20stroke-width%3D%220.2%22%2F%3E%20%20%3C%2Fg%3E%3C%2Fsvg%3E')!important; background-repeat: no-repeat; }
+.bz-ab:before{
+  content:"🆎";
+}
+.bz-setting:before{
+  content:"🛠";
+  font-size:17px;
+}
 .bz-search:before{
   content:"🔎";
 }
@@ -31,6 +52,7 @@ var formatter={
 }
 .bz-declare:before{
   content:"📢";
+  font-size: 13px;
 }
 .bz-timer:before,
 .bz-timer2:before{
@@ -81,9 +103,11 @@ var formatter={
 }
 .bz-success:before{
   content:"✔️";
+  font-size: 10px;
 }
 .bz-failed:before{
   content:"❌";
+  font-size: 10px;
 }
 .bz-reset { background-image: url('data:image/svg+xml;charset%3DUS-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016.6%2021.024%22%3E%20%20%3Cdefs%3E%20%20%20%20%3Cstyle%3E%20%20%20%20%20%20.cls-1%20%7B%20%20%20%20%20%20%20%20fill%3A%20rgba%2854%2C61%2C74%2C0.99%29%3B%20%20%20%20%20%20%20%20stroke%3A%20%23363d4a%3B%20%20%20%20%20%20%20%20stroke-width%3A%200.6px%3B%20%20%20%20%20%20%20%20fill-rule%3A%20evenodd%3B%20%20%20%20%20%20%7D%20%20%20%20%3C%2Fstyle%3E%20%20%3C%2Fdefs%3E%20%20%3Cg%20id%3D%22reset%22%20transform%3D%22translate%28-3.7%20-3.7%29%22%3E%20%20%20%20%3Cpath%20id%3D%22Path_456%22%20data-name%3D%22Path%20456%22%20class%3D%22cls-1%22%20d%3D%22M4%2C12v1H6V12a6%2C6%2C0%2C1%2C1%2C6%2C6H11V14L6%2C19l5%2C5V20h1a8%2C8%2C0%2C1%2C0-8-8Z%22%2F%3E%20%20%3C%2Fg%3E%3C%2Fsvg%3E')!important; background-repeat: no-repeat; }
 .bz-running {background-image: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0nMTIwcHgnIGhlaWdodD0nMTIwcHgnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgdmlld0JveD0iMCAwIDEwMCAxMDAiIHByZXNlcnZlQXNwZWN0UmF0aW89InhNaWRZTWlkIiBjbGFzcz0idWlsLWRlZmF1bHQiPjxyZWN0IHg9IjAiIHk9IjAiIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiBmaWxsPSJub25lIiBjbGFzcz0iYmsiPjwvcmVjdD48cmVjdCAgeD0nNDYuNScgeT0nNDAnIHdpZHRoPSc3JyBoZWlnaHQ9JzIwJyByeD0nNScgcnk9JzUnIGZpbGw9JyMzRTY1RkYnIHRyYW5zZm9ybT0ncm90YXRlKDAgNTAgNTApIHRyYW5zbGF0ZSgwIC0zMCknPiAgPGFuaW1hdGUgYXR0cmlidXRlTmFtZT0nb3BhY2l0eScgZnJvbT0nMScgdG89JzAnIGR1cj0nMXMnIGJlZ2luPScwcycgcmVwZWF0Q291bnQ9J2luZGVmaW5pdGUnLz48L3JlY3Q+PHJlY3QgIHg9JzQ2LjUnIHk9JzQwJyB3aWR0aD0nNycgaGVpZ2h0PScyMCcgcng9JzUnIHJ5PSc1JyBmaWxsPScjM0U2NUZGJyB0cmFuc2Zvcm09J3JvdGF0ZSgzMCA1MCA1MCkgdHJhbnNsYXRlKDAgLTMwKSc+ICA8YW5pbWF0ZSBhdHRyaWJ1dGVOYW1lPSdvcGFjaXR5JyBmcm9tPScxJyB0bz0nMCcgZHVyPScxcycgYmVnaW49JzAuMDgzMzMzMzMzMzMzMzMzMzNzJyByZXBlYXRDb3VudD0naW5kZWZpbml0ZScvPjwvcmVjdD48cmVjdCAgeD0nNDYuNScgeT0nNDAnIHdpZHRoPSc3JyBoZWlnaHQ9JzIwJyByeD0nNScgcnk9JzUnIGZpbGw9JyMzRTY1RkYnIHRyYW5zZm9ybT0ncm90YXRlKDYwIDUwIDUwKSB0cmFuc2xhdGUoMCAtMzApJz4gIDxhbmltYXRlIGF0dHJpYnV0ZU5hbWU9J29wYWNpdHknIGZyb209JzEnIHRvPScwJyBkdXI9JzFzJyBiZWdpbj0nMC4xNjY2NjY2NjY2NjY2NjY2NnMnIHJlcGVhdENvdW50PSdpbmRlZmluaXRlJy8+PC9yZWN0PjxyZWN0ICB4PSc0Ni41JyB5PSc0MCcgd2lkdGg9JzcnIGhlaWdodD0nMjAnIHJ4PSc1JyByeT0nNScgZmlsbD0nIzNFNjVGRicgdHJhbnNmb3JtPSdyb3RhdGUoOTAgNTAgNTApIHRyYW5zbGF0ZSgwIC0zMCknPiAgPGFuaW1hdGUgYXR0cmlidXRlTmFtZT0nb3BhY2l0eScgZnJvbT0nMScgdG89JzAnIGR1cj0nMXMnIGJlZ2luPScwLjI1cycgcmVwZWF0Q291bnQ9J2luZGVmaW5pdGUnLz48L3JlY3Q+PHJlY3QgIHg9JzQ2LjUnIHk9JzQwJyB3aWR0aD0nNycgaGVpZ2h0PScyMCcgcng9JzUnIHJ5PSc1JyBmaWxsPScjM0U2NUZGJyB0cmFuc2Zvcm09J3JvdGF0ZSgxMjAgNTAgNTApIHRyYW5zbGF0ZSgwIC0zMCknPiAgPGFuaW1hdGUgYXR0cmlidXRlTmFtZT0nb3BhY2l0eScgZnJvbT0nMScgdG89JzAnIGR1cj0nMXMnIGJlZ2luPScwLjMzMzMzMzMzMzMzMzMzMzNzJyByZXBlYXRDb3VudD0naW5kZWZpbml0ZScvPjwvcmVjdD48cmVjdCAgeD0nNDYuNScgeT0nNDAnIHdpZHRoPSc3JyBoZWlnaHQ9JzIwJyByeD0nNScgcnk9JzUnIGZpbGw9JyMzRTY1RkYnIHRyYW5zZm9ybT0ncm90YXRlKDE1MCA1MCA1MCkgdHJhbnNsYXRlKDAgLTMwKSc+ICA8YW5pbWF0ZSBhdHRyaWJ1dGVOYW1lPSdvcGFjaXR5JyBmcm9tPScxJyB0bz0nMCcgZHVyPScxcycgYmVnaW49JzAuNDE2NjY2NjY2NjY2NjY2N3MnIHJlcGVhdENvdW50PSdpbmRlZmluaXRlJy8+PC9yZWN0PjxyZWN0ICB4PSc0Ni41JyB5PSc0MCcgd2lkdGg9JzcnIGhlaWdodD0nMjAnIHJ4PSc1JyByeT0nNScgZmlsbD0nIzNFNjVGRicgdHJhbnNmb3JtPSdyb3RhdGUoMTgwIDUwIDUwKSB0cmFuc2xhdGUoMCAtMzApJz4gIDxhbmltYXRlIGF0dHJpYnV0ZU5hbWU9J29wYWNpdHknIGZyb209JzEnIHRvPScwJyBkdXI9JzFzJyBiZWdpbj0nMC41cycgcmVwZWF0Q291bnQ9J2luZGVmaW5pdGUnLz48L3JlY3Q+PHJlY3QgIHg9JzQ2LjUnIHk9JzQwJyB3aWR0aD0nNycgaGVpZ2h0PScyMCcgcng9JzUnIHJ5PSc1JyBmaWxsPScjM0U2NUZGJyB0cmFuc2Zvcm09J3JvdGF0ZSgyMTAgNTAgNTApIHRyYW5zbGF0ZSgwIC0zMCknPiAgPGFuaW1hdGUgYXR0cmlidXRlTmFtZT0nb3BhY2l0eScgZnJvbT0nMScgdG89JzAnIGR1cj0nMXMnIGJlZ2luPScwLjU4MzMzMzMzMzMzMzMzMzRzJyByZXBlYXRDb3VudD0naW5kZWZpbml0ZScvPjwvcmVjdD48cmVjdCAgeD0nNDYuNScgeT0nNDAnIHdpZHRoPSc3JyBoZWlnaHQ9JzIwJyByeD0nNScgcnk9JzUnIGZpbGw9JyMzRTY1RkYnIHRyYW5zZm9ybT0ncm90YXRlKDI0MCA1MCA1MCkgdHJhbnNsYXRlKDAgLTMwKSc+ICA8YW5pbWF0ZSBhdHRyaWJ1dGVOYW1lPSdvcGFjaXR5JyBmcm9tPScxJyB0bz0nMCcgZHVyPScxcycgYmVnaW49JzAuNjY2NjY2NjY2NjY2NjY2NnMnIHJlcGVhdENvdW50PSdpbmRlZmluaXRlJy8+PC9yZWN0PjxyZWN0ICB4PSc0Ni41JyB5PSc0MCcgd2lkdGg9JzcnIGhlaWdodD0nMjAnIHJ4PSc1JyByeT0nNScgZmlsbD0nIzNFNjVGRicgdHJhbnNmb3JtPSdyb3RhdGUoMjcwIDUwIDUwKSB0cmFuc2xhdGUoMCAtMzApJz4gIDxhbmltYXRlIGF0dHJpYnV0ZU5hbWU9J29wYWNpdHknIGZyb209JzEnIHRvPScwJyBkdXI9JzFzJyBiZWdpbj0nMC43NXMnIHJlcGVhdENvdW50PSdpbmRlZmluaXRlJy8+PC9yZWN0PjxyZWN0ICB4PSc0Ni41JyB5PSc0MCcgd2lkdGg9JzcnIGhlaWdodD0nMjAnIHJ4PSc1JyByeT0nNScgZmlsbD0nIzNFNjVGRicgdHJhbnNmb3JtPSdyb3RhdGUoMzAwIDUwIDUwKSB0cmFuc2xhdGUoMCAtMzApJz4gIDxhbmltYXRlIGF0dHJpYnV0ZU5hbWU9J29wYWNpdHknIGZyb209JzEnIHRvPScwJyBkdXI9JzFzJyBiZWdpbj0nMC44MzMzMzMzMzMzMzMzMzM0cycgcmVwZWF0Q291bnQ9J2luZGVmaW5pdGUnLz48L3JlY3Q+PHJlY3QgIHg9JzQ2LjUnIHk9JzQwJyB3aWR0aD0nNycgaGVpZ2h0PScyMCcgcng9JzUnIHJ5PSc1JyBmaWxsPScjM0U2NUZGJyB0cmFuc2Zvcm09J3JvdGF0ZSgzMzAgNTAgNTApIHRyYW5zbGF0ZSgwIC0zMCknPiAgPGFuaW1hdGUgYXR0cmlidXRlTmFtZT0nb3BhY2l0eScgZnJvbT0nMScgdG89JzAnIGR1cj0nMXMnIGJlZ2luPScwLjkxNjY2NjY2NjY2NjY2NjZzJyByZXBlYXRDb3VudD0naW5kZWZpbml0ZScvPjwvcmVjdD48L3N2Zz4=);}
@@ -113,7 +137,7 @@ button:disabled{
   cursor:not-allowed !important;
 }
 .bz-log-box{
-  background-color: #EEE;
+  background-color: #f3f7f9;
   padding: 2px;border-radius: 5px;
 }
 
@@ -128,17 +152,25 @@ button:disabled{
 }
 .bz-content{
   padding: 1px 0 1px 0;
-  background-color:#EEE;
+  background-color:#f3f7f9;
   display:flex;
   flex-direction: column;
 }
 .bz-row{
   display:flex;
-  color: blue;
+  /** color: blue; */
 }
+
+.bz-highlight-row{
+  color:#009;
+}
+.bz-light-row{
+  color:#333;
+}
+
 .bz-title{
   display: flex;
-  color:#00F;
+  color:#363D4A;
   border-radius: 5px;
   line-height: 30px;
   width:calc(100% - 4px);
@@ -160,8 +192,8 @@ button:disabled{
   display: flex;
   flex-direction: column;
   margin: 2px 0px 0px 2px;
-  background-color: #EEE;
-  padding: 10px 0 10px 10px;
+  background-color: #f3f7f9;
+  padding: 0px 0 10px 10px;
   width: calc(100% - 2px);
 }
 .bz-nowrap{
@@ -190,11 +222,12 @@ button:disabled{
 .bz-header .bz-timer{
   flex: 1;
   position: relative;
-  font-size: 25px;
+  font-size: 20px;
   font-weight: bold;
   top: 6px;
   margin: 2px 15px 5px 5px;
   white-space: nowrap;
+  color: #363D4A;
 }
 .bz-details{
   display: flex;
@@ -227,15 +260,12 @@ body>.bz-log-box .bz-header .bz-timer{
   width: 50px;
   white-space:nowrap;
 }
-.bz-hide{
-  display:none;
-}
 .bz-wait{
   color:#999;
 }
 .bz-small-icon,
 .bz-icon{
-  font-size: 15px;
+  font-size: 13px;
   border: 0;
   background-color: transparent;
   margin: 0 10px;
@@ -280,12 +310,18 @@ button.bz-icon-txt{
   white-space: pre-wrap;
   word-break: break-word;
 }
+
 .bz-panel>div:hover{
-  background-color:#cce1ff;
+  /** background-color:#cce1ff; **/
 }
 
+.bz-line:hover,
+.bz-row:hover,
+.bz-title:hover{
+  background-color:#cce1ff;
+}
 .bz-content:hover{
-  background-color:#EEE;
+  background-color:#f3f7f9;
 }
 
 .bz-ctrl-box{
@@ -298,6 +334,7 @@ button.bz-icon-txt{
   white-space: nowrap;
   text-align: center;
   margin:0 10px;
+  color: #363D4A;
 }
 .bz-ctrl-box .bz-declare,.bz-ctrl-box .bz-init{
   width:80px;
@@ -328,21 +365,22 @@ button{
 .bz-header *{
   white-space:nowrap;
 }
-.bz-header input{
+.bz-header input[type=text]{
   border-radius: 5px;
   border: 1px solid #999;
-  height: 20px;
+  height:28px;
   width: 300px;
   padding: 3px 6px;
   margin: 3px 0 0 2px;
+}
+body>.bz-log-box .bz-header input[type=text]{
+  height:20px;
 }
 .bz-search-highlight{
   background-color:yellow;
   font-weight:bold;
 }
-#main-panel .bz-header input{
-  height:28px;
-}
+
 .bz-scope{
   counter-reset: line;
 }
@@ -428,7 +466,7 @@ body>.bz-log-box .bz-sort-bar{
   background-size: 11px;
 }
 .bz-pop-panel .bz-content{
-  border-bottom: 1px solid #CCC;
+  border-bottom: 1px solid #d3dbde;
   margin-bottom: 8px;
   padding-bottom:8px;
 }
@@ -488,10 +526,10 @@ body>.bz-log-box .bz-sort-bar{
 
 .bz-header .bz-icon{
   width:30px;
-  margin:0 5px;
+  margin:2px 5px;
 }
 
-.bz-switch,.bz-camera,.bz-new-bug,.bz-bug,.bz-cross,.bz-download,.bz-search,.bz-analyze,.bz-result.bz-failed{
+.bz-switch,.bz-camera,.bz-new-bug,.bz-bug,.bz-cross,.bz-download,.bz-setting,.bz-search,.bz-ab,.bz-analyze,.bz-result.bz-failed{
   border-radius: 20px;
   width: 30px;
   height: 30px;
@@ -516,40 +554,49 @@ body>.bz-log-box .bz-sort-bar{
   border: 0;
   top: 5px;
   right: 1px;
-  background-color: transparent;  
+  background-color: transparent;
+  display: inline-block;
 }
 
 .bz-mini-letter{
   font-size:11px;
 }
-
+.bz-mini-icon-letter:before{
+  font-size:11px !important;
+}
 .bz-show-failed-only{
   line-height: 34px;
   margin-right: 10px;
 }
-input[type=checkbox]{
-  height: initial !important;
-  width: initial !important;
+.bz-header input[type=checkbox]{
   margin-right: 5px;
 }
+.bz-pop-panel .bz-icon-col:firstChild{
+  border:1px solid #d3dbde;
+}
 .bz-pop-panel .bz-icon-col{
-  width:60px;
+  width:50px;
+  padding-left:5px;
   margin-left:8px;
+  margin-top:0;
+  margin-bottom:0;
+  padding-top:2px;
 }
 .bz-icon-col:before{
   margin-right:5px;
+  position: relative;
+  top: -1px;
 }
-
+.bz-none{
+  visibility:hidden;
+}
 .bz-pop-panel .bz-mini-icon.bz-switch{
   background-size: 5px;
   position: relative;
   background-position: center;
-  top:2px;
+  top:6px;
   width: 15px !important;
   height: 15px !important;
-}
-.bz-pop-panel .bz-panel .bz-row{
-  color:#000;
 }
 .bz-camera:hover .bz-tmp-screenshot{
   display:block;
@@ -564,10 +611,116 @@ input[type=checkbox]{
 .bz-tmp-screenshot:hover{
   display:block;
 }
+.bz-row-high{
+  line-height:30px;
+}
+.bz-level-scenario{
+  /** border-top:1px solid #d3dbde; */
+}
+.bz-tab-panel{
+  overflow:auto;
+  padding:5px;
+  background-color:#EEE;
+}
+.bz-tab-bar{
+  border-bottom:1px solid #d3dbde;
+  display:flex;
+}
+.bz-tab{
+  cursor:pointer;
+  margin:10px;
+}
+.bz-tab.bz-active{
+  border-bottom:1px solid #009;
+}
+.bz-close{
+  position: relative;
+  top: 3px;
+  padding: 5px;
+  border: 1px solid;
+  transform: rotate(-90deg);
+}
+.bz-node-title{
+  flex:1;
+}
+.bz-pop-panel hr{
+  height:1px;
+  border-width:0;
+  background-color:#d3dbde;
+  margin: 0;
+}
+.bz-pop-panel .bz-mini-icon.bz-scenario,
+.bz-pop-panel .bz-mini-icon.bz-test{
+  position:relative;
+  top:2px;
+}
+.bz-node-title-bar .bz-mini-icon.bz-scenario,
+.bz-node-title-bar .bz-mini-icon.bz-test{
+  position:relative;
+  top:8px;
+}
+.bz-hide{
+  display:none;
+}
+.bz-node .bz-node{
+  padding-left:20px;
+}
+.bz-node .bz-title-text{
+  line-height:25px;
+}
+.bz-term-bar{
+  display:flex;
+  margin-right:17px;
+}
+.bz-term-title{
+  width:235px;
+  text-align:center;
+}
+
+@media (min-width: 1600px)
+body {
+  font-size: 13px;
+}
+.bz-icon-col.bz-timer2{
+  border-left:1px solid #CCC;
+}
+.bz-diff-item{
+  background-color: #F99;
+}
+.bz-diff-item1{
+  background-color: #9F9;
+}
+.bz-diff-item2{
+  background-color: #FCC;
+}
+.bz-diff-item12{
+  background-color: #CFC;
+}
+.bz-same-item{
+  display:none;
+}
+.std{
+  border-radius: 10px;
+  background-color: #00F;
+  color: #FFF;
+  border: 1px solid blue;
+  padding: 2px 15px;
+  line-height: 20px;
+  cursor: pointer;
+}
+.std:hover{
+  background-color: #009;
+  color: #FFF;
+}
+input[type=number]{
+  width:50px;
+}
     `
   },
   updateFormatLogSetting:function(setting){
-    localStorage.setItem("bz-log-format",JSON.stringify(setting))
+    try{
+      localStorage.setItem("bz-log-format",JSON.stringify(setting))
+    }catch(e){}
   },
   exeFormag:function(setting,auto){
     if(setting.gotoOrg){
@@ -617,6 +770,7 @@ input[type=checkbox]{
         }
       }
     }else{
+      formatter.removeDoingInfo()
       return
     }
 
@@ -631,7 +785,6 @@ input[type=checkbox]{
       }
       formatter.data={
         moduleMap:{},
-        analyzeDataMap:{},
         setting:setting,
         totalActions:0,
         totalTests:0,
@@ -643,7 +796,7 @@ input[type=checkbox]{
           end:{}
         },
         scenarioMap:{},
-        moduleMap:{},
+        scenarioAnaMap:{},
         testMap:{},
         workerMap:[],
         waitingListMap:{},
@@ -752,6 +905,8 @@ input[type=checkbox]{
         },10)
       }else if(o.hasClass("bz-switch2")){
         return
+      }else if(o.hasClass("bz-close")){
+        formatter.closeScenario(o)
       }else if(o.hasClass("bz-switch")){
         switchPanel(o)
       }else if(o.hasClass("bz-tmp-screenshot")){
@@ -773,24 +928,26 @@ input[type=checkbox]{
         switchContent(o,"declare")
       }else if(o.hasClass("bz-camera")){
         if(o.attr("path")){
-          window.open(formatter.getCameraPath(o.attr("path")),"_blank")
+          formatter.openWindow(formatter.getCameraPath(o.attr("path")),"_blank")
         }else{
           formatter.showCameraPanel()
         }
       }else if(o.hasClass("bz-log-item")){
         openLog(o)
       }else if(o.hasClass("bz-search")){
-        formatter.search($(".bz-header input").val())
+        formatter.search($(".bz-header input.bz-search-input").val())
       }else if(o.hasClass("bz-analyze")){
-        formatter.showAnalyzePanel()
+        analyzer.doAnalysis()
       }else if(o.hasClass("bz-download")){
         formatter.download()
+      }else if(o.hasClass("bz-ab")){
+        formatter.showCompare()
       }else if(o.hasClass("bz-bug")||o.hasClass("bz-new-bug")||o.hasClass("bz-failed-hash")){ //bug button
         let url=o.attr("path")||o.attr("hash")
         if(url.match(/^[0-9A-F]+$/)){
           formatter.openIDE("rootCause/"+url)
         }else{
-          window.open(url,"bz-bug")
+          formatter.openWindow(url,"bz-bug")
         }
       }else if(o.hasClass("bz-failed")&&o.hasClass("bz-result")){
         gotoHash(o)
@@ -823,14 +980,14 @@ input[type=checkbox]{
         return
       }
       
-      if(!path&&!$(o).hasClass("bz-title-text")){
+      if(!path){
         path=o.innerText.match(/m[0-9]+[\.\/\-]t[0-9]+([\.\/][0-9]+)?/)
         if(!path){
           return
         }
         path=path[0]
       }
-      path=path.replace(/\./g,"/")
+
       if(!o.posRight){
         let s=o.innerHTML
         o.innerHTML=`<span>${s}</span>`
@@ -891,7 +1048,7 @@ input[type=checkbox]{
       formatter.data.setting.gotoOrg=1
       formatter.updateFormatLogSetting(formatter.data.setting)
       formatter.data.setting.gotoOrg=0
-      window.open(n)
+      formatter.openWindow(n)
     }
     function openTest(o){
       let v=o.attr("bz")
@@ -972,7 +1129,7 @@ input[type=checkbox]{
         e=s[k].element
         closer=s[k].closer
       }
-      if(closer.hasClass("bz-open")){
+      if(closer[0].getBoundingClientRect().width){
         closer.removeClass("bz-open")
         e.addClass("bz-hide")
       }else{
@@ -982,6 +1139,20 @@ input[type=checkbox]{
       }
     }
     
+  },
+  closeScenario:function(o){
+    while(!o.hasClass("bz-level-scenario")){
+      o=o.parent()
+    }
+    o=o.find(".bz-switch.bz-open")
+    o.click()
+    o.focus()
+  },
+  openWindow:function(url,name,size){
+    let w=window.open(url,name,size)
+    if(!w){
+      chrome.runtime.sendMessage({bz:1,bg:1,fun:"openWindow",data:{url:url,name:name}});
+    }
   },
   cleanScenarioPanel:function(k){
     let s=formatter.data.scenarioMap[k]
@@ -1025,7 +1196,7 @@ input[type=checkbox]{
       </div>
       <pre class="bz-panel ${o.code}" ${o.close?'':'style="display:none;"'}>
         ${exPanel}
-        <div class='bz-details ${o.code}-details'>${o.details||""}</div>
+        <div class='bz-details ${o.code}-details'>${o.details&&o.details.constructor==String?o.details:""}</div>
         ${endPanel}
       </pre>
     </div>`
@@ -1035,20 +1206,18 @@ input[type=checkbox]{
     for(let k in formatter.data.scenarioMap){
       let o=formatter.data.scenarioMap[k]
       if(o.result=="success"&&formatter.data.failedOnly){
-        $("#"+o.code).hide()
-        o.hidden=1
+        formatter.hideScenario(o)
       }else{
-        o.hidden=0
         $("#"+o.code).show()
       }
     }
   },
-  getLogList:function(){
+  getLogList:function(masterUrl){
     let v;
     try{
       eval("v="+formatter.data.setting.identifyWorker)
-      v= v()
-      if(!v||v.constructor!=Array){
+      v= v(masterUrl)
+      if(!v||v.constructor!=Array||v.includes(masterUrl)){
         v=[]
       }
     }catch(ex){}
@@ -1072,12 +1241,13 @@ input[type=checkbox]{
           .map(x=>`<button id="sort-${x.k}" class="bz-icon-letter ${x.c||""}">${x.n}</button>`).join("")}
         </div>
         <div class="bz-input-cross-box">
-          <input class='bz-search-input'/>
+          <input class='bz-search-input' type="text"/>
           <button class="bz-cross bz-icon bz-input-cross"></button>
         </div>
         <button class="bz-icon bz-search"></button>
         <button class='bz-icon bz-download' title='Download log'></button>
         <button class='bz-icon bz-analyze' title='Show test case execution summary' disabled='true'></button>
+        <button class='bz-icon bz-ab' title='Compare with other log to see the diffences'></button>
         <button class='bz-camera bz-icon-letter bz-camera' title='Show screenshot list' disabled='true'></button>
         <div class='bz-pop-panel bz-close-panel bz-hide'><button class="bz-mini-icon bz-cross" style="position:absolute;"></button><div class='bz-box'></div></div>
       </div>`).appendTo(p),
@@ -1085,15 +1255,51 @@ input[type=checkbox]{
       exePanel:$("<div class='bz-scope bz-hide' bz-name='Executing list'></div>").appendTo(p),
       panel:$("<div class='bz-scope' bz-name='Completed list'></div>").appendTo(p),
       waitingList:$("<div class='bz-scope bz-hide' bz-name='Waiting list'></div>").appendTo(p),
-      end:$("<div class='bz-scope bz-end'></div>").appendTo(p)
+      end:$("<pre class='bz-scope bz-end'></pre>").appendTo(p)
     };
-
-    o.header.find("input.bz-search-input").keydown(function(e){
-      if(e.keyCode==13){
-        this.blur()
+    
+    let popPanel=$(".bz-pop-panel");
+    popPanel.mousedown(function(e) {
+      this.isDown = true;
+      let r=this.getBoundingClientRect()
+      this.org={
+        left:r.left,
+        top:r.top,
+        x:e.clientX,
+        y:e.clientY
       }
+      popPanel.css({
+        position:"fixed",
+        "margin-top":0,
+        top:this.org.top+"px",
+        left:this.org.left+"px",
+        right:"unset",
+        "z-index":2000000000000000000
+      })
+      $(document.body).addClass("disable-select")
+    });
+
+    popPanel.mouseup(function() {
+      this.isDown = false;
+      $(document.body).removeClass("disable-select")
+    });
+
+    popPanel.mousemove(function(e) {
+      if (this.isDown) {
+        e.preventDefault();
+        popPanel.css({
+          top:this.org.top+(e.clientY - this.org.y)+"px",
+          left:this.org.left+(e.clientX - this.org.x)+"px",
+          right:"unset"
+        })
+      }
+    });
+    popPanel.mouseout(function(){
+      this.isDown=0
+      $(document.body).removeClass("disable-select")
     })
-    o.header.find("input.bz-search-input").blur(function(e){
+
+    o.header.find("input.bz-search-input").change(function(e){
       formatter.search(this.value)
     })
 
@@ -1166,7 +1372,7 @@ input[type=checkbox]{
           complete:function(c){
             c=c.responseText.split("\n")
             if(c.length){
-              while(!c.pop()){}
+              while(c.length&&!c.pop()){}
               if(c.length>3){
                 c.pop()
               }
@@ -1201,14 +1407,18 @@ input[type=checkbox]{
     }
     v=(fd.curEnd||"")+v
 
-    let ss=v.match(/\n[0-9]+\: BZ-Result\:(Success|Failed)$/gm)||[],
+    let ss=v.match(/\n[0-9]+\: BZ-Result\:(Success|Failed|Stop)$/gm)||[],
         list=[],
         remoteList=v.match(/\n[0-9]+\: \.{4} .+ Remote \[m[0-9].+\] .+Completed in (.+) Tasks:[ 0-9\/\.]+$/gm)||[]
 
     ss.forEach(x=>{
       let ei=v.indexOf(x)
+      
       let sv=v.substring(0,ei+x.length)
       v=v.substring(sv.length).trim()
+      if(x.includes("BZ-Result:Stop")){
+        return
+      }
       handleItem(sv,x)
     })
     
@@ -1251,7 +1461,7 @@ input[type=checkbox]{
     
     function handleItem(sv,x){
       let s={
-        idx:x?x.match(/[0-9]+/)[0]:0,
+        idx:parseInt(x?x.match(/[0-9]+/)[0]:0),
         result:x?x.includes("Success")?"success":"failed":"running",
         org:sv,
         type:"scenario",
@@ -1274,10 +1484,10 @@ input[type=checkbox]{
 
       handleFailedScenario(s)
       handleEnd(s)
-      if(fd.curLastScenario){
-        fd.curLastScenario.time=formatter.getSpendTime(fd.curLastScenario.start,s.start,"scenarioTime")
-        fd.curLastScenario.endTime=s.start
-      }
+      // if(fd.curLastScenario){
+        // fd.curLastScenario.time=formatter.getSpendTime(fd.curLastScenario.start,s.start,"scenarioTime")
+        // fd.curLastScenario.endTime=s.start
+      // }
       fd.curLastScenario=s
     }
     
@@ -1314,7 +1524,7 @@ input[type=checkbox]{
 
     function handleDeclare(s){
       let sv=s.org
-      let w=sv.match(/\n([0-9]+)\: +\>+ Loading Scenario \[((m[0-9]+\.t[0-9]+)(\(([0-9]+)\))?)\] - (.+) \([0-9:]+\) \>+$/m);
+      let w=sv.match(/\n([0-9]+)\: +\>+ Loading Scenario \[((m[0-9]+\.t[0-9]+)(\(([0-9]+)\))?)\] - (.+) \(([0-9:]+)\) \>+$/m);
       if(!w){
         s.declare.org=sv
         s.org=""
@@ -1322,19 +1532,20 @@ input[type=checkbox]{
       }
       let k=w[2].replace(/[^tm0-9]/g,"-").replace(/-$/,"")
       
-
       s.ckey="module-"+k,
       s.code=k+"-"+fd.curWorker
 
       s.name=w[6]
       s.bz=w[3]
+      s.start=w[7]
       s.title="["+w[2]+"] "+w[6]
       s.dataIdx=w[5]
       fd.scenarioMap[s.code]=s
       w=formatter.splitByWord(s.org,w[0]);
       s.declare.org=w[0]
       s.org=w[1]
-      s.init.start=formatter.retrieveTimeFromLog(w[1])||s.start
+      s.init.start=s.start
+//      s.init.start=formatter.retrieveTimeFromLog(w[1])||s.start
       s.declare.time=formatter.getSpendTime(s.start,s.init.start,"declareTime")
 
       delete fd.waitingListMap[k]
@@ -1360,7 +1571,7 @@ input[type=checkbox]{
     
     function handleEnd(s){
       if(s.org){
-        let mk=/[0-9]+\:   <+ .+Feature - Scenario \[m[0-9][^\]]+\] ([0-9\:]+) .+$/m;
+        let mk=/[0-9]+\:   <+ [^\[]+Feature - Scenario \[m[0-9][^\]]+\] ([0-9\:]+) [^<]+<<<</ms;
         let w=formatter.splitByWord(s.org,mk);
         if(!w){
           s.details.org=s.org
@@ -1368,6 +1579,7 @@ input[type=checkbox]{
           mk=w[1].match(mk)
           if(mk){
             s.endTime=mk[1]
+            s.time=formatter.getSpendTime(s.start,s.endTime)
           }
           s.details.org=w[0]
           delete s.org
@@ -1543,6 +1755,19 @@ input[type=checkbox]{
       }
     }
   },
+  loadModuleInfo:function(v){
+    let ms=v.match(/[0-9]+: Module info: \[m[0-9]+\] .+/gm)||[]
+    ms.forEach(x=>{
+      x=x.split(/\[|\] /);
+      let c=x[1],n=x[2]
+      let m=formatter.data.moduleMap[c]
+      if(!m){
+        m=formatter.data.moduleMap[c]={testMap:{}}
+      }
+      m.code=c
+      m.name=n
+    })
+  },
   strToHtml:function(v,mark){
     v=v||""
     if(v.constructor==String){
@@ -1559,14 +1784,14 @@ input[type=checkbox]{
     v=v.replace(/(bz-line)(">[0-9]+: <---- Join worker)/g,"$1 bz-join$2")
     v=v.replace(/(bz-line)(\">[0-9]+: Remove worker )/g,`$1 bz-leave$2`)
     if(mark=="failed"){
-      v=v.replace(/<div class="bz-line">(\[Error Hash: ([A-F0-9]+)\][^<]*)<\/div>/,'<div><button title="Open the Root Cause in IDE" class="bz-failed-title bz-failed-hash" hash="$2">$1</button></div>')
+      v=v.replace(/<div class="bz-line">(\[Error Hash: ([A-F0-9]+)\][^<]*)<\/div>/,'<div><button title="Open the Root Cause in IDE" class="bz-failed-title bz-failed-hash" hash="$2">$1</button><button class="bz-icon bz-close bz-switch" title="Close current scenario"></button></div>')
       v=v.replace(/<div class="bz-line">([0-9]+\: ERROR MESSAGE: )([^<]+<\/div>)/,"<fieldset class='bz-err-msg-box'><legend>$1</legend><div class='bz-line'>$2");
       v=v.replace(/<\/div><div><button/,"</div></fieldset><div><button")
     }
     return v
   },
-  buildAllDetails:function(){
-    Object.keys(formatter.data.scenarioMap).forEach(x=>formatter.initScenario(x))
+  buildAllDetails:function(os){
+    (os||Object.keys(formatter.data.scenarioMap)).forEach(x=>formatter.initScenario(x))
   },
   initScenario:function(k){
     let fd=formatter.data
@@ -1575,10 +1800,15 @@ input[type=checkbox]{
       s.element=$("#"+k)
       s.switcher=$(s.element.find(".bz-switch")[0])
       s.init.element=$("#"+k+"-init.bz-level-init")
+      s.init.panel=s.init.element.find(".bz-panel>div")[0]
       s.init.closer=s.init.element.find(".bz-cross")
+
       s.declare.element=$("#"+k+"-declare.bz-level-declare")
+      s.declare.panel=s.declare.element.find(".bz-panel>div")[0]
       s.declare.closer=s.declare.element.find(".bz-cross")
+      
       s.details.element=s.element.find("."+k+"-details")
+      
       s.end.element=s.element.find("."+k+"-end")
       
       buildSimpleContent(s.init.element.find(".bz-panel"),s.init.org)
@@ -1592,7 +1822,7 @@ input[type=checkbox]{
     
     function buildTests(v,level,startTime,endTime,bz,test){
       let html=""
-      let ts=formatter.getTestTreeByLevel(v,level),curTest,tt,lastTest;
+      let ts=analyzer.getTestTreeByLevel(v,level),curTest,tt,lastTest;
       
       ts.forEach((t,i)=>{
         if(i%2==0){
@@ -1776,10 +2006,11 @@ input[type=checkbox]{
   },
   retrieveTimeFromLog:function(v){
     v=v.match(/\[ ([0-9\:]+) (\(([0-9\:]+), ([0-9]+)s\) \++) *\]/)||[]
+    let fd=formatter.data
     if(v[3]>(formatter.data.exeTime||"")){
-      formatter.data.exeTime=v[3]
-      formatter.element.header.find(".bz-timer").text(v[3])
+      fd.exeTime=v[3]
     }
+    formatter.element.header.find(".bz-timer").text(fd.exeTime+` (${parseInt((fd.successScenarios+fd.failedScenarios)/fd.totalScenarios*100)}%)`)
     return v[3]
   },
   splitByWord:function(v,k,keepKeyInFirst){
@@ -1799,9 +2030,6 @@ input[type=checkbox]{
     return [v.substring(0,k).trim(),v.substring(k).trim()]
   },
   strToTime:function(s){
-    if(s&&s.match(/^[0-9]+$/)){
-      debugger
-    }
     s=s||"0"
     let v=0,p=[3600,60,1]
     s=s.split(":")
@@ -1812,7 +2040,7 @@ input[type=checkbox]{
   },
   openIDE:function(v){
     let fd=formatter.data
-    window.open(fd.host+"/extension?id="+fd.project.code+"#"+fd.project.code+"/"+fd.version+"/"+v.replace(".","/"),"bz-master",`width=${screen.availWidth/2},height=${screen.availHeight}`)
+    formatter.openWindow(fd.host+"/extension?id="+fd.project.code+"#"+fd.project.code+"/"+fd.version+"/"+v.replace(".","/"),"bz-master",`width=${screen.availWidth/2},height=${screen.availHeight}`)
   },
   getPageInfo:function(x,sendResponse){
     let c=$("a[href=consoleFull]")[0]
@@ -1857,15 +2085,21 @@ input[type=checkbox]{
     return 1
   },
   autoLoading:function(){
-    let v=localStorage.getItem("bz-log-format");
-    if(v){
-      v=JSON.parse(v)
-      if(v.autoFormat){
-        if(formatter.isMasterPage(v)){
-          formatter.exeFormag(v,Date.now())
+    try{
+      let v=localStorage.getItem("bz-log-format");
+      if(v){
+        v=JSON.parse(v)
+        if(!v.scenarioTime){
+          v.scenarioTime=180
+          v.testTime=60
+        }
+        if(v.autoFormat){
+          if(formatter.isMasterPage(v)){
+            formatter.exeFormag(v,Date.now())
+          }
         }
       }
-    }
+    }catch(e){}
   },
   isMasterPage:function(v){
     if(v.identifyMaster){
@@ -1899,13 +2133,13 @@ input[type=checkbox]{
   },
   download:function(){
     let os=Object.values(formatter.data.scenarioMap)
-    os.sort((a,b)=>{
+    os=os.filter(x=>$("#"+x.code).css("display")!="none").sort((a,b)=>{
       return a.idx-b.idx
     })
     let w=os.map(x=>{
       return x.declare.org.trim()+"\n"+x.init.org.trim()+"\n"+x.details.org.trim()+"\n"+x.end.org.trim()
     }).join("\n")
-    w=formatter.data.project.init.org.trim()+"\n"+w+formatter.data.project.end.org
+    w=formatter.data.project.init.org.trim()+"\n"+w+"\n"+formatter.data.project.end.org
     w=`<!DOCTYPE html>
        <html>
        <head><meta http-equiv='Content-Type' content='text/html; charset=UTF-8'></head>
@@ -1918,173 +2152,221 @@ input[type=checkbox]{
     a.attr("download","Boozang-log.html").attr("href","data:application/octet-stream," + encodeURIComponent(w))[0].click();
     a.remove();
   },
+  loadTextFromFiles:function(_files,_fun){
+    let _reader = new FileReader(),
+        rs=[];
+    
+
+    function _readFile(i) {
+      if( i >= _files.length ) {
+        return _fun(rs);
+      }
+      var _file = _files[i];
+      _reader.onload = function(e) {  
+        rs.push(e.target.result);
+        _readFile(i+1)
+      }
+      _reader.readAsText(_file);
+    }
+    _readFile(0);
+
+    _reader.onerror = function() {
+      alert(_bzMessage._system._error._importFileError,_reader.error);
+    };
+  },
   getCameraPath:function(v){
     let fd=formatter.data
     return fd.host+"/screenshot/"+fd.project.code+"/"+fd.project.code+"."+fd.version+"."+v+".png"
   },
+  showCompare:function(){
+    let o=$(".bz-pop-panel");
+    if(o.attr("type")=="compare"){
+      return o.show()
+    }else{
+      o.attr({type:"compare"})
+    }
+    o.find("div.bz-box").html(`
+      <div class="bz-row-high">
+        <label><input checked type="radio" value="net-scope" name="load"/>Load log files from network</label>
+      </div>
+      <div class="bz-row-high load-option" id="net-scope">
+        <label style="margin-left:20px;">Log URL/No.<input type="text" id="net-log" placeholder="Split by comma to compare multiple logs"/></label>
+      </div>
+      <div class="bz-row-high">
+        <label><input type="radio" name="load" value="file-scope"/>Load log files from local</label>
+      </div>
+      <div class="bz-row-high load-option" id="file-scope" style="display:none">
+        <input type="file" id="file-log" multiple/>
+      </div>
+      <div class="bz-row-high" style="margin-top:10px;text-align:center;">
+        <button id="compare-btn" class="std">Compare</button>
+      </div>`)
+    setTimeout(()=>{
+      $("input#net-log").focus()
+    },100)
+    $("#net-log").keydown(function(e){
+      if(e.keyCode==13){
+        doCompare()
+      }
+    })
+    $("input[type=file]").change(function(){
+      formatter.loadTextFromFiles(this.files,function(fs){
+        if(fs){
+          analyzeLogs([{
+            key:formatter.compareFileIdx++,
+            list:fs
+          }])
+        }
+      })
+    })
+    $("#compare-btn").click(()=>{
+      doCompare()
+    })
+    $("[name=load]").click(function(){
+      $(".load-option").hide()
+      $("#"+this.value).show()
+    })
+    o.show()
+    function doCompare(){
+      if($("[name=load]:checked").val()=="net-scope"){
+        loadFromNet()
+      }else{
+        compare()
+      }
+    }
+    
+    function compare(vs){
+      analyzer.doAnalysis(vs)
+    }
+    
+    function mergeModuledata(vs){
+      
+    }
+
+    function loadFromNet(){
+      let vs=$("#net-log").val().split(",")
+      vs=vs.map(x=>{
+        if($.isNumeric(x)){
+          return {
+            key:x,
+            list:[]
+          }
+        }else{
+          return {
+            key:1,
+            url:x,
+            list:[]
+          }
+        }
+      })
+      loadLogs(vs,0,function(){
+        analyzeLogs(vs)
+      })
+    }
+    
+    function loadLogs(vs,i,fun){
+      let v=vs[i]
+      if(v){
+        let masterUrl=v.url||location.href.replace(/\/[0-9]+[\/]/,"/"+v.key+"/")
+        loadLogByUrl(masterUrl,function(vv){
+          if(!vv){
+            return alert("Load log failed! Please be sure the url/no. is correct.")
+          }
+          v.list.push(vv)
+          vv=formatter.getLogList(masterUrl)
+          loadPages(vv,0,function(vvv){
+            v.list.push(...vvv)
+            loadLogs(vs,i+1,fun)
+          })
+        })
+      }else{
+        fun(vs)
+      }
+    }
+    
+    function loadPages(vs,i,fun){
+      let v=vs[i]
+      if(v){
+        loadLogByUrl(v,function(r){
+          vs[i]=r;
+          loadPages(vs,i+1,fun)
+        })
+      }else{
+        fun(vs)
+      }
+    }
+    
+    function loadLogByUrl(v,fun){
+      formatter.showDoing("Loading log ...")
+      $.ajax({
+        method:"GET",
+        url:v,
+        success:function(r){
+          fun(r)
+          formatter.removeDoingInfo()
+        }
+      })
+    }
+    
+    function analyzeLogs(vs){
+      try{
+        formatter.data.scenarioAnaMap={}
+        vs.forEach(x=>{
+          let v=x.list.join("\n")
+          x.list={}
+          
+          let ts=analyzer.getTestTreeByLevel(v,0)
+          ts=ts.map((y,i)=>{
+            if(i%2){
+              return {start:ts[i-1],end:ts[i]}
+            }
+          }).filter(x=>x).forEach(y=>{
+            let s=y.end.match(/<+ ([^ ]+) [^\[]+(\[((m[0-9]+).(t[0-9]+))\(?([0-9]+)?\)?\] )([0-9:]+) ([^<]+) Tasks:/)
+            s={
+              result:s[1].toLowerCase(),
+              title:s[2]+" "+s[8],
+              code:s[3],
+              m:s[4],
+              t:s[5],
+              idx:parseInt(s[6]||0),
+              name:s[8],
+              start:y.start.match(/\(([0-9:]+)\) >>>>$/)[1],
+              end:s[7]
+            }
+            s.time=parseInt(formatter.getSpendTime(s.start,s.end))
+            y=v.split(y.end)
+            v=y[1]
+            if(s.result!="stopped"){
+              analyzer.addAnalyzeData(x.list,s,formatter.data.scenarioAnaMap,x.key);
+              // formatter.data.scenarioAnaMap[s.code].nodes[s.idx].term[x.key]=s
+              
+              analyzer.retrieveAnalyzeData(x.key,x.list,y[0],1,s)
+            }
+          })
+        })
+        compare(vs)
+      }catch(ex){
+        console.log(ex.stack)
+        alert(ex.message)
+      }
+    }
+  },
   showCameraPanel:function(){
     let o=$(".bz-pop-panel")
+    if(o.attr("type")=="camera"){
+      return o.show()
+    }else{
+      o.attr({type:"camera"})
+    }
     let w=""
     formatter.cameraList.forEach(x=>{
       w+=`<div class='bz-row bz-title-text' style='margin:5px 0'><img style='margin:0 10px;width:100px' src='${formatter.getCameraPath(x)}'/> ${x}</div>`
     })
     o.find("div.bz-box").html(`<div style='overflow:auto;max-height:${window.innerHeight-250}px;padding:5px;background-color:#EEE;'>${w}<div>`)
     o.find("img").click(function(){
-      window.open(this.src,"_blank")
+      formatter.openWindow(this.src,"_blank")
     })
     o.show()
-  },
-  showAnalyzePanel:function(){
-    let o=$(".bz-pop-panel")
-    let w="",fd=formatter.data;
-    retrieveAnalyzeData()
-    for(let m in fd.moduleMap){
-      let tm=fd.moduleMap[m].testMap
-      let ts=Object.values(tm),
-          mSuccess=0,
-          mFailed=0,
-          mTotal=0,
-          mTime=0,
-          tr=[],
-          mWarn=""
-          
-      ts.forEach(x=>{
-        
-        mTotal+=x.list.length
-        let success=0,failed=0,time=0,average=0,
-            warn="' style='margin-left:20px;",
-            slow=new Set(),repeat=new Set()
-        x.list.forEach(y=>{
-          if(y.result!="failed"){
-            success++
-          }else{
-            failed++
-          }
-          time+=parseInt(y.time)
-          if(y.slow){
-            slow.add(y.slow)
-          }
-          if(y.repeat){
-            repeat.push(y.repeat)
-          }
-        })
-        average=parseInt(time/(success+failed))
-        slow=[...slow]
-        repeat=[...repeat]
-        if(slow.length){
-          slow="Slow in scenarios:\n"+slow.join("\n")
-        }
-        if(repeat.length){
-          repeat="Too many repeat in scenarios:\n"+repeat.join("\n")
-        }
-        let msg=slow+"\n\n"+repeat
-        msg=msg.trim()
-        if(msg){
-          warn=` bz-warning' style='margin-left:0' title='${msg}`
-          mWarn="⚠️"
-        }
-        tr.push(`
-          <div class="bz-row">
-            <div class='bz-title-text${warn}'>[${x.list[0].code}] ${x.list[0].name}</div>
-            <span class='bz-icon bz-icon-col bz-timer2' style='width:80px;'>${time}/${average}s</span>
-            <span class='bz-icon bz-icon-col bz-success'>${success}</span>
-            <span class='bz-icon bz-icon-col bz-failed'>${failed}</span>
-          </div>
-        `)
-        mSuccess+=success
-        mFailed+=failed
-        mTime+=time
-      })
-      w+=`
-        <div>
-          <div class='bz-row'>
-            <button class='bz-mini-icon bz-switch bz-switch2'></button>
-            <div class="bz-title-text" style="display:flex;">
-              <span style="flex:1">${m}${mWarn} (Tests: ${ts.length}, executed times: ${mTotal})</span>
-              <span class='bz-icon bz-icon-col bz-timer2' style='width:80px;'>${mTime}s</span>
-              <span class='bz-icon bz-icon-col bz-success'>${mSuccess}</span>
-              <span class='bz-icon bz-icon-col bz-failed'>${mFailed}</span>
-            </div>
-          </div>
-          <div class='bz-panel bz-hide'>
-            ${tr.join("")}
-          </div>
-          <hr style='height:1px;border-width:0;background-color:#CCC'/>
-        </div>
-      `
-    }
-
-    o.find("div.bz-box").html(`<div style='overflow:auto;max-height:${window.innerHeight-250}px;padding:5px;background-color:#EEE;'>${w}<div>`)
-    o.find(".bz-switch2").click(function(e){
-      let pp=$(this.parentElement.nextElementSibling)
-      if($(this).hasClass("bz-open")){
-        $(this).removeClass("bz-open")
-        pp.hide()
-      }else{
-        $(this).addClass("bz-open")
-        pp.show()
-      }
-    })
-    o.show()
-    
-    function retrieveAnalyzeData(){
-      let mp=fd.moduleMap
-      for(let k in fd.scenarioMap){
-        if(!fd.analyzeDataMap[k]){
-          fd.analyzeDataMap[k]=1
-          let s=fd.scenarioMap[k],level=1
-          while(1){
-            let ts=formatter.getTestTreeByLevel(s.details.org,level++),ct,lt,lts=0
-            if(!ts.length){
-              break
-            }
-            ts.forEach((t,i)=>{
-              if(i%2==0){
-                let c=t.match(/\[(m[0-9]+)\.(t[0-9]+).*\] - (.+) \(([0-9:]+)\) >>>>$/)
-                ct={
-                  m:c[1],
-                  t:c[2],
-                  code:c[1]+"."+c[2],
-                  name:c[3],
-                  start:c[4],
-                  from:k
-                }
-              }else{
-                let c=t.match(/<<<< ([^ ]+) [^\]]+\] ([0-9:]+) .+ <<<<$/),
-                    m=ct.m
-                ct.end=c[2]
-                ct.result=c[1].toLowerCase()
-                
-                ct.time=parseInt(formatter.getSpendTime(ct.start,ct.end))
-                
-                if(ct.time>fd.setting.testTime){
-                  ct.slow=k
-                }
-                
-                mp[m]=mp[m]||{testMap:{}}
-                
-                mp[m].testMap[ct.t]=mp[m].testMap[ct.t]||{list:[]}
-                mp[m].testMap[ct.t].list.push(ct);
-                if(lt&&lt.code==ct.code&&lt.from==ct.from){
-                  lts++
-                  if(lts>5){
-                    ct.repeat=k
-                  }
-                }else{
-                  lts=0
-                  lt=ct
-                }
-              }
-            })
-          }
-        }
-      }
-    }
-  },
-  getTestTreeByLevel:function(v,level){
-    let r=`/[0-9]+: {${level*6+3}}(>+ Loading .+|<+ .+)Test \\[m[0-9]+\.t[0-9]+.+/gm`
-    r=eval(r)
-    return v.match(r)||[]
   },
   sort:function(o){
     let k=o[0].id.split("-").pop(),w=1
@@ -2123,16 +2405,15 @@ input[type=checkbox]{
     }
     formatter.searching=1
     formatter.showFailedOnlyResult()
-    formatter.removeAllHighlight()
     if(!v){
       formatter.searching=0
+      formatter.removeAllHighlight()
       return formatter.closeAll()
     }
     formatter.showDoing("Searching ...")
     document.documentElement.scrollTop=0
 
     return setTimeout(()=>{
-      formatter.buildAllDetails()
       doSearch(v,scope)
     })
     
@@ -2148,6 +2429,8 @@ input[type=checkbox]{
         v=v.toLowerCase().split(",")
         alert("This is not a correct regular expression!")
       }
+      preFilter(v)
+      formatter.removeAllHighlight()
       if(!scope){
         scope=[formatter.element.init,...formatter.element.panel.find(".bz-level-scenario").toArray().filter(x=>$(x).css("display")!="none"),formatter.element.end]
       }
@@ -2250,6 +2533,90 @@ input[type=checkbox]{
       formatter.removeDoingInfo()
       formatter.searching=0
     }
+    
+    function preFilter(v){
+      let os=Object.values(fd.scenarioMap).filter(x=>x.result=="failed"||!fd.failedOnly)
+
+      if(v.constructor==Array){
+        v=v.map((x,i)=>{
+          let xx;
+          if(!i){
+            xx=x.match(/(scenario|test) (.+)/)
+            if(xx){
+              v[i]=xx[1]
+              xx="Loading .+ ("+xx[1].replace(/ /g,"|")+")"
+            }else{
+              xx=x.match(/(m[0-9]+[\.\/]t[0-9]+)(.*)/)
+              if(xx){
+                v[i]=xx[1]
+                let xxx=(xx[2]||"").trim()
+                xx="Loading .+ \\["+xx[1]
+                if(xxx){
+                  v.splice(i+1,0,xxx)
+                }
+              }
+            }
+            if(xx){
+              eval("xx=/"+xx+"/i")
+              os=os.filter(x=>{
+                if(!x.title.match(xx)&&!x.init.org.match(xx)&&!x.details.org.match(xx)){
+                  formatter.hideScenario(x)
+                }else{
+                  return 1
+                }
+              })
+            }else{
+              xx=x.match(/action[: ](.+)/)
+              if(xx){
+                v[i]=xx[1]
+                xx=xx[1].split(" ").sort((a,b)=>a.length-b.length).pop()
+                xx="##Action[^#]*## .*"+xx
+
+                eval("xx=/"+xx+"/i")
+                os=os.filter(x=>{
+                  if(!x.details.org.match(xx)){
+                    formatter.hideScenario(x)
+                  }else{
+                    return 1
+                  }
+                })
+              }
+            }
+          }
+          if(!xx){
+            x=x.split(" ")
+            x.sort((a,b)=>b.length-a.length)
+            return x[0].replace(/([^a-z0-9])/gi,"\\$1")
+          }
+        }).filter(x=>x).join("|")
+        if(v){
+          eval("v=/"+v+"/i")
+        }
+      }
+      if(v){
+        os=os.filter(x=>{
+          if(!x.title.match(v)&&!x.details.org.match(v)&&!x.init.org.match(v)&&!x.declare.org.match(v)){
+            formatter.hideScenario(x)
+          }else{
+            return 1
+          }
+        })
+      }
+      formatter.buildAllDetails(os.map(x=>x.code))
+    }
+  },
+  hideScenario:function(o){
+    if(o.element){
+      o.details.element.html("");
+      o.init.panel.innerHTML=""
+      o.declare.panel.innerHTML=""
+      o.end.element.html("")
+      o.switcher.removeClass("bz-open")
+      $(o.element.find(".bz-panel")[0]).hide()
+      o.element.find(".bz-level-init,.bz-level-declare").addClass("bz-hide")
+      o.element=0
+    }
+    $("#"+o.code).hide()
   },
   removeAllHighlight:function(){
     let os=$(".bz-search-highlight").toArray()
@@ -2297,6 +2664,823 @@ input[type=checkbox]{
   getIdx:function(){
     return formatter.idx++
   }
+};
+
+var analyzer={
+  setting:{
+    percentage:0.1,
+    second:5,
+    missTest:1,
+    diffResult:1,
+    diffScenario:1,
+    tab:"scenario"
+  },
+  //mp: module map, ap: analysis map, ct: scenario/test
+  addAnalyzeData:function(mp,ct,ap,key){
+    let d=createNode(mp,ct.m,{testMap:{}})
+    d=createNode(d.testMap,ct.t,{list:[]})
+    if(ct.scenario){
+      d.list.unshift(ct)
+    }else{
+      d.list.push(ct)
+    }
+
+    if(ap){
+      let d=createNode(ap,ct.code,{
+        name:ct.name,
+        code:ct.code,
+        type:"scenario",
+        nodes:[]
+      })
+      d=createNode(d.nodes,ct.idx,{code:ct.idx,term:{},nodes:[]})
+      d.term[key]={
+        result:ct.result,
+        time:parseInt(ct.time)
+      }
+    }
+    
+    function createNode(p,k,o){
+      p[k]=p[k]||o
+      return p[k]
+    }
+  },
+  retrieveAnalyzeData:function(term,mp,log,level,scenario){
+    //last level list
+    let lls,cls
+    while(1){
+      let ts=analyzer.getTestTreeByLevel(log,level++),ct,lt,lts=0
+      if(!ts.length){
+        break
+      }
+      lls=cls
+      cls=[]
+      for(let i=0;i<ts.length;i++){
+        let t=ts[i]
+        if(!ct){
+          let c=t.match(/([0-9]+)[^\[]+\[(m[0-9]+)\.(t[0-9]+).*\] - (.+) \(([0-9:]+)\) >>>>$/)
+          if(!c){
+            return alert("Analyze data failed! Please report the issue to Boozang customer support. Thanks!")
+          }
+          ct={
+            startLine:parseInt(c[1]),
+            m:c[2],
+            t:c[3],
+            code:c[2]+"."+c[3],
+            name:c[4],
+            start:c[5],
+            from:scenario.code,
+            scenario:!level
+          }
+        }else{
+          let c=t.match(/([0-9]+): +<<<< ([^ ]+) [^\]]+\] ([0-9:]+) [^<]+ <<<</s),
+              m=ct.m
+          if(!c){
+            i--
+            ct.stop=1
+            ct=0
+            continue
+          }
+          ct.endLine=parseInt(c[1]),
+          ct.end=c[3]
+          ct.result=c[2].toLowerCase()
+          
+          ct.time=parseInt(formatter.getSpendTime(ct.start,ct.end))
+          
+          if(ct.time>formatter.data.setting.testTime){
+            ct.slow=scenario.key
+          }
+          //check repeat
+          if(lt&&lt.code==ct.code&&lt.from==ct.from){
+            lts++
+            if(lts>5){
+              ct.repeat=scenario.key
+            }
+          }else{
+            lts=0
+            lt=ct
+          }
+          
+          let ns
+
+          if(lls){
+            while(lls[0].endLine<ct.startLine){
+              lls.shift()
+            }
+            if(lls[0].startLine<ct.startLine){
+              ns=lls[0].nodes
+            }
+          }else{
+            ns=formatter.data.scenarioAnaMap[scenario.code].nodes[scenario.idx].nodes
+          }
+          let d={code:ct.code,name:ct.name,nodes:[],term:{}};
+          d.term[term]={
+            result:ct.result,
+            time:parseInt(ct.time)
+          }
+
+          if(!ns.find(x=>{
+            if(!x.term[term]&&x.code==ct.code){
+              x.term[term]=d.term[term]
+              ct.nodes=x.nodes
+              return 1
+            }
+          })){
+            if(!ns.find((x,j)=>{
+              if(!x.term[term]){
+                ns.splice(j,0,d)
+                return 1
+              }
+            })){
+              ns.push(d)
+            }
+            ct.nodes=d.nodes
+          }
+
+          cls.push(ct)
+          analyzer.addAnalyzeData(mp,ct)
+
+          ct=0
+        }
+      }
+    }
+    return 1
+  },
+  doAnalysis:function(compare){
+    let fd=formatter.data,
+        o=$(".bz-pop-panel")
+        
+    if(o.attr("type")=="analyze"){
+      if(compare){
+        o.attr({type:"compare"})
+      }else{
+        return o.show()
+      }
+    }else if(!compare){
+      o.attr({type:"analyze"})
+    }
+    if(!compare){
+      fd.scenarioAnaMap={}
+    }
+    analyzer.moduleData={}
+    analyzer.buildMasterAnalysisData()
+    analyzer.buildModuleData("master",fd.moduleMap);
+    if(compare){
+      compare.forEach(x=>{
+        analyzer.buildModuleData(x.key,x.list)
+      })
+      analyzer.curCompareTabs=compare.map(x=>x.key)
+      analyzer.curCompareTabs.unshift("master")
+      
+      
+    }else{
+      analyzer.curCompareTabs=0
+    }
+    
+    analyzer.showAnalyzePanel(compare&&"diff")
+  },
+  identifyDiffData:function(compare){
+    let tabs=[],as=analyzer.setting
+    tabs.push(...analyzer.curCompareTabs)
+    tabs.shift()
+
+    for(let k in analyzer.moduleData){
+      let m=analyzer.moduleData[k]
+      isDiffOnMissing(m)
+      m.ts.forEach(x=>{
+        isDiffOnMissing(x)
+        if(!x.diff){
+          isDiffItem(x,m)
+        }
+      })
+    }
+    analyzer.initAnaTopData()
+
+    for(let k in formatter.data.scenarioAnaMap){
+      setDiffInNodes(formatter.data.scenarioAnaMap[k])
+    }
+    
+    function setDiffInNodes(m,p){
+      if(m.nodes&&m.nodes.length){
+        m.nodes.forEach(x=>{
+          setDiffInNodes(x,m)
+          if(m.diff&&m.diff.constructor==Array){
+            if(m.term){
+              m.diff.forEach(y=>{
+                if(p){
+                  p.diff=m.diff
+                }
+              })
+            }
+          }else if(p){
+            if(p.term){
+              for(let k in m.term){
+                if(m.term[k].diff){
+                  p.term[k].diff=p.term[k].diff||new Set()
+                  let xx=[]
+                  xx.push(...m.term[k].diff)
+                  xx.forEach(y=>p.term[k].diff.add(y))
+                }
+              }
+            }else if(m.diff){
+            }
+          }
+        })
+      }
+      m.hide=0
+      if(m.term){
+        let master=m.term.master
+        if(!master){
+          if(analyzer.setting.missTest){
+            for(let k in m.term){
+              m.diff=1
+              m.term[k].diff=1
+            }
+            if(p){
+              p.diff=Object.keys(m.term)
+            }
+          }
+        }else{
+          if(!tabs.find(x=>{
+            if(!m.term[x]){
+              if(analyzer.setting.missTest){
+                master.diff=1
+                if(p){
+                  p.diff=["master"]
+                }
+              }
+              return 1
+            }
+          })){
+            if(!isDiffItem(m,p)&&p&&p.type=="scenario"&&analyzer.setting.diffScenario){
+              if(!analyzer.setting.showAll){
+                m.hide=1
+              }else{
+                m.hide=0
+              }
+            }
+          }
+        }
+      }
+    }
+    
+    
+    function isDiffItem(m,p){
+      let mm=m.term.master,hasDiff;
+      tabs.forEach(x=>{
+        let t=m.term[x]
+        if(as.diffResult){
+          if(t.success!=mm.success){
+            setDiff(t,"success")
+            hasDiff=1
+          }
+          if(t.failed!=mm.failed){
+            setDiff(t,"failed")
+            hasDiff=1
+          }
+          if(t.result!=mm.result){
+            setDiff(t,t.result)
+            hasDiff=1
+          }
+        }
+        if(t.average){
+          if(isDiffTime(t.average,mm.average)){
+            setDiff(t,"time")
+            hasDiff=1
+          }
+        }else{
+          if(isDiffTime(t.time,mm.time)){
+            setDiff(t,"time")
+            hasDiff=1
+          }
+        }
+        if(t.diff&&p&&p.term){
+          if(!hasDiff&&p&&p.type=="scenario"&&analyzer.setting.diffScenario){
+            delete t.diff
+          }else{
+            if(!p.term[x].diff||p.term[x].diff.constructor!=Set){
+              p.term[x].diff=new Set();
+            }
+            t=[...t.diff]
+
+            t.forEach(y=>p.term[x].diff.add(y))
+          }
+        }
+      })
+      return hasDiff
+    }
+    
+    function setDiff(x,v){
+      x.diff=x.diff||new Set()
+      x.diff.add(v)
+    }
+
+    function isDiffOnMissing(m){
+      if(!m.term.master){
+        m.diff=1
+        for(let k in m.term){
+          m.term[k].diff=1
+        }
+      }else{
+        tabs.forEach(x=>{
+          if(!m.term[x]){
+            m.diff=1
+            m.term.master.diff=1
+          }
+        })
+      }
+    }
+    function isDiffTime(a,b){
+      let v=Math.abs(a-b)
+      let p=Math.max(v/a,v/b)
+      if(v>as.second&&p>as.percentage){
+        return 1
+      }
+    }
+  },
+  showDiffSetting:function(){
+    let as=analyzer.setting,
+        o=$(".bz-pop-panel")
+    o.attr({type:""})
+    o.find("div.bz-box").html(`
+      <div style="margin:10px 20px">
+        <h3 style="margin-left:5px;">Diff tool config</h3>
+        <label style="margin-left:5px;">Show differences when</label> 
+        <br/><br/>
+        <label style="margin-left:5px;">Execution time differs more than <input type="number" id="percentage"> percent (%)</label>
+        <br/><br/>
+        <label style="margin-left:5px;">Ignore execution time differences up to <input type="number" id="second"> seconds (s)</label>
+        <br/><br/>
+        <label><input type="checkbox" id="diffScenario">Compare on scenario-level only</label>
+        <br/><br/>
+        <label><input type="checkbox" id="diffResult">Test result changes (Pass <-> Fail)</label>
+        <br/><br/>
+        <label><input type="checkbox" id="missTest">Missing test case</label>
+      </div>
+      <div style="text-align: center;margin: 15px 0 10px 0;"><button class="std">Run diff</button></div>
+    `)
+    
+    $("#diffResult").attr({checked:!!as.diffResult})
+    $("#missTest").attr({checked:!!as.missTest})
+    $("#diffScenario").attr({checked:!!as.diffScenario})
+    $("#second").val(as.second)
+    $("#percentage").val(as.percentage*100)
+
+    $("#diffResult").click(function(){
+      as.diffResult=this.checked
+    })
+    $("#missTest").click(function(){
+      as.missTest=this.checked
+    })
+    $("#diffScenario").click(function(){
+      as.diffScenario=this.checked
+    })
+    $("#second").change(function(){
+      as.second=this.value
+    })
+    $("#percentage").change(function(){
+      as.percentage=this.value/100
+    })
+    $(".std").click(function(){
+      analyzer.showAnalyzePanel("diff")
+    })
+  },
+  clearDiff:function(d){
+    for(let k in d){
+      let m=d[k]
+      m.diff=0
+      clearTerm(m)
+
+      if(m.ts){
+        m.ts.forEach(x=>{
+          clearTerm(x)
+        })
+      }
+    }
+    function clearTerm(m){
+      for(let k in m.term){
+        m.term[k].diff=0
+      }
+      if(m.nodes){
+        m.nodes.forEach(x=>{
+          clearTerm(x)
+        })
+      }
+    }
+    for(let k in formatter.data.scenarioMap){
+      let s=formatter.data.scenarioMap[k]
+      s.analyzed=0
+    }
+  },
+  initAnaTopData:function(){
+    for(let k in formatter.data.scenarioAnaMap){
+      let m=formatter.data.scenarioAnaMap[k]
+      
+      m.nodes.forEach(y=>{
+        for(let k in y.term){
+          if(y.term[k].result=="success"){
+            m.term[k].success++
+          }else{
+            m.term[k].failed++
+          }
+          m.term[k].time+=y.term[k].time
+        }
+      })
+      for(let k in m.term){
+        m.term[k].average=parseInt(m.term[k].time/(m.term[k].success+m.term[k].failed))
+      }
+    }
+  },
+  showAnalyzePanel:function(compare){
+    let fd=formatter.data,
+        o=$(".bz-pop-panel"), 
+        compareScope="",
+        compareTerm="",
+        tabs=["master"]
+    if(compare){
+      tabs=[...analyzer.curCompareTabs]
+    }
+    analyzer.clearDiff(analyzer.moduleData);
+    analyzer.clearDiff(formatter.data.scenarioAnaMap)
+    for(let k in fd.scenarioAnaMap){
+      let m=fd.scenarioAnaMap[k]
+      m.term={}
+      tabs.forEach(x=>{
+        m.term[x]={success:0,failed:0,time:0}
+      })
+    }
+
+    if(compare){
+      analyzer.identifyDiffData(compare)
+      let ks=analyzer.curCompareTabs
+      compareScope=`
+        <div>
+          <label style='line-height: 40px;margin-right: 20px'><input type="checkbox" id="showAll" ${analyzer.setting.showAll&&"checked"}/> Show all</label>
+        </div>
+        <div style="margin:8px ​10p;">
+          <button class="bz-icon bz-setting"></button>
+        </div>`;
+      compareTerm=`
+        <div class="bz-term-bar">
+          <div style="flex:1;"></div>
+          ${ks.map(x=>`<div class="bz-term-title">${x}</div>`).join("")}
+        </div>
+      `
+    }else{
+      analyzer.initAnaTopData()
+    }
+    let md=analyzer.moduleData
+    o.find("div.bz-box").html(`
+      <div class="bz-tab-bar">
+        <a class="bz-tab ${analyzer.setting.tab=='scenario'&&'bz-active'}" id="tab-scenario">Scenarios</a>
+        <a class="bz-tab ${analyzer.setting.tab=='feature'&&'bz-active'}" id="tab-feature">Features</a>
+        <a class="bz-tab ${analyzer.setting.tab=='module'&&'bz-active'}" id="tab-module">Modules</a>
+        <div style="flex:1;"></div>
+        ${compareScope}
+      </div>
+      ${compareTerm}
+      <div class="bz-tab-panel bz-panel-tab-module" style='max-height:${window.innerHeight-250}px;${analyzer.setting.tab!='module'&&'display:none;'}'>
+        ${getModuleResult(md,"test")}
+      </div>
+      <div class="bz-tab-panel bz-panel-tab-feature" style='max-height:${window.innerHeight-250}px;${analyzer.setting.tab!='feature'&&'display:none;'}'>
+        ${getModuleResult(md,"scenario")}
+      </div>
+      <div class="bz-tab-panel bz-panel-tab-scenario" style='max-height:${window.innerHeight-250}px;${analyzer.setting.tab!='scenario'&&'display:none;'}'>
+        ${getScenarioResult()}
+      </div>`)
+    o.find(".bz-switch2").click(function(e){
+      let pp=$(this.parentElement.nextElementSibling)
+      if($(this).hasClass("bz-open")){
+        $(this).removeClass("bz-open")
+        pp.hide()
+      }else{
+        $(this).addClass("bz-open")
+        pp.show()
+      }
+    })
+    $("#showAll").click(function(){
+      analyzer.setting.showAll=this.checked
+      analyzer.showAnalyzePanel("diff")
+    })
+    $(".bz-tab").click(function(){
+      $(".bz-tab").removeClass("bz-active")
+      $(this).addClass("bz-active")
+      $(".bz-tab-panel").hide()
+      $(".bz-panel-"+this.id).show()
+      analyzer.setting.tab=this.id.split("-").pop()
+    })
+    o.show()
+
+    $(".bz-setting").click(function(){
+      analyzer.showDiffSetting()
+    })
+    
+    function getModuleResult(md,type){
+      let vs=Object.values(md)
+      let w=vs.filter(x=>x.ts.find(y=>y.type==type)).map(x=>{
+        return `
+          <div class="${getSameClass(x)}">
+            <div class='bz-row'>
+              <button class='bz-mini-icon bz-switch bz-switch2'></button>
+              <div class="bz-title-text" style="line-height:25px;">
+                [${x.code}] ${x.name||""} (Tests: ${x.ts.length})
+              </div>
+              ${sortTerm(x).map((z,i)=>{
+                return `
+                  <span class='bz-icon bz-icon-col bz-mini-icon-letter bz-timer2 ${getDiffClass(x,z,i,"time")}' style='width:100px;'>${z.time}s</span>
+                  <span class='bz-icon bz-icon-col bz-mini-icon-letter ${z.success?"bz-success":""} ${getDiffClass(x,z,i,"success")}'>${z.success||""}</span>
+                  <span class='bz-icon bz-icon-col bz-mini-icon-letter ${z.failed?"bz-failed":""} ${getDiffClass(x,z,i,"failed")}'>${z.failed||""}${z.warn}</span>
+                `
+              }).join("")}
+            </div>
+            <div class='bz-panel bz-hide'>
+              ${x.ts.map(x=>getTestResult(x,type)).join("")}
+            </div>
+            <hr class="${getSameClass(x)}"/>
+          </div>
+        `
+      }).join("")
+      return w
+    }
+    
+    function getSameClass(x){
+      if(compare&&!analyzer.setting.showAll){
+        for(let k in x.term){
+          if(x.term[k].diff){
+            return ""
+          }
+        }
+        return "bz-same-item"
+      }
+      return ""
+    }
+
+    function getTestResult(x,type){
+      return `
+        <div class="bz-row ${getSameClass(x)}">
+          <div class='bz-title-text' style='margin-left:20px;'>
+            <div class="bz-mini-icon bz-${type}"></div> [${x.code}] ${x.name}
+          </div>
+          ${sortTerm(x).map((z,i)=>{
+            return `
+              <span class='bz-icon bz-icon-col bz-mini-icon-letter bz-timer2 ${getDiffClass(x,z,i,"time")}2' style='width:100px;'>${z.time}s / ${z.average}s</span>
+              <span class='bz-icon bz-icon-col bz-mini-icon-letter ${z.success?"bz-success":""} ${getDiffClass(x,z,i,"success")}2'>${z.success||""}</span>
+              <span class='bz-icon bz-icon-col bz-mini-icon-letter ${z.failed?"bz-failed":""} ${getDiffClass(x,z,i,"failed")}2'>${z.failed||""}${z.warn}</span>
+            `
+          }).join("")}
+        </div>
+      `
+    }
+    
+    function getDiffClass(s,m,i,kk){
+      if(compare){
+        let c="",//"bz-diff-item",
+            c1="bz-diff-item1"
+            
+        for(let k in s.term){
+          let x=s.term[k]
+          if(x.diff){
+            if(x.diff.constructor==Set){
+              if(x.diff.has(kk)){
+                let vs=[]
+                for(let j in s.term){
+                  vs.push(s.term[j][kk])
+                }
+                vs.sort((a,b)=>{
+                  if(a>b){
+                    return 1
+                  }else{
+                    return -1
+                  }
+                })
+
+                if(kk=="success"){
+                  vs.reverse()
+                  if(vs[0]==m[kk]){
+                    return c1
+                  }
+                }else if(kk=="failed"){
+                  if(vs[0]==m[kk]){
+                    return c1
+                  }
+                }else if(kk=="result"){
+                  if(m[kk]=="success"){
+                    return c1
+                  }
+                }else if(kk=="time"){
+                  if(vs[0]==m[kk]){
+                    return c1
+                  }else{
+                    m.persentage=parseInt((m[kk]-vs[0])/vs[0]*100)+"%"
+                  }
+                }
+              }
+            }else{
+              return "bz-diff-item"
+            }
+            return ""
+          }
+        }
+      }
+      return ""
+    }
+    
+    function sortTerm(o){
+      return Object.keys(o.term).sort((a,b)=>{
+        if(a=="master"){
+          return -1
+        }else if(b=="master"){
+          return 1
+        }else{
+          return a>b?1:-1
+        }
+      }).map(x=>o.term[x])
+    }
+    
+    function getScenarioResult(){
+      return Object.values(fd.scenarioAnaMap).filter(x=>x).map(x=>{
+        let ns=x.nodes.filter(u=>!u.hide)
+        if(ns.length){
+          let xx=Object.assign({},x)
+          xx.nodes=ns
+          return xx
+        }
+      }).filter(x=>x).map(x=>getNodeView(x,compare?0:"master")+`<hr class="${getSameClass(x)}"/>`).join("")
+    }
+    
+    function getNodeView(s,k){
+      return `
+        <div class='bz-node ${getSameClass(s)}'>
+          <div class="bz-row bz-node-title-bar">
+            <button class="bz-mini-icon bz-switch bz-switch2 ${s.nodes.length?'':'bz-none'}"></button>
+            <div class="bz-mini-icon bz-${s.name?s.type||"test":"hide"}"></div>
+            <div class="bz-title-text">${s.name?"["+s.code+"] ":""}${s.name||s.code}</div>
+            ${sortTerm(s).map((x,i)=>{
+              if(s.type=="scenario"){
+                return `<div style="width:100px;" class="${getDiffClass(s,x,i,"time")}2 bz-icon bz-icon-col bz-mini-icon-letter bz-icon-col bz-timer2">${x.time?x.time+"s / "+x.average+"s":""}</div>
+                        <div class="${getDiffClass(s,x,i,"success")}2 bz-mini-icon-letter bz-icon-col bz-${x.success?'success':''}">${x.success||""}</div>
+                        <div class="${getDiffClass(s,x,i,"failed")}2 bz-mini-icon-letter bz-icon-col bz-${x.failed?'failed':''}">${x.failed||""}</div>`
+              }else{
+                return `<div style="width:100px;" class="${getDiffClass(s,x,i,"time")}2 bz-icon bz-icon-col bz-mini-icon-letter bz-icon-col bz-timer2">${x.time}s${x.persentage?' ('+x.persentage+')':''}</div>
+                        <div class="${getDiffClass(s,x,i,"success")}2 bz-mini-icon-letter bz-icon-col bz-success ${x.result=="success"?'':'bz-none'}"></div>
+                        <div class="${getDiffClass(s,x,i,"failed")}2 bz-mini-icon-letter bz-icon-col bz-failed ${x.result=="success"?'bz-none':''}"></div>`
+              }
+            }).join("")}
+          </div>
+          <div class="bz-node-panel bz-hide">
+            ${s.nodes.map(x=>getNodeView(x,k)).join("")}
+          </div>
+        </div>${!s.name?`<hr class="${getSameClass(s)}"/>`:""}`
+        
+    }
+  },
+  buildModuleData:function(key,map){
+    analyzer.moduleData=analyzer.moduleData||{}
+    let fd=formatter.data,ad=analyzer.moduleData;
+    for(let m in map){
+      let mm=map[m]
+      let tm=mm.testMap
+      let ts=Object.values(tm)
+      
+      ad[m]=ad[m]||{
+        code:m,
+        name:mm.name,
+        ts:[],
+        term:{}
+      }
+      let rm=ad[m]
+      let tts=rm.ts
+      
+      rm=rm.term[key]=rm.term[key]||{
+        success:0,
+        failed:0,
+        total:0,
+        time:0,
+        warn:""
+      }
+      
+
+      ts.forEach(x=>{
+        rm.total+=x.list.length
+        let t={
+          term:{}
+        },slow=new Set(),repeat=new Set()
+        
+        t.term[key]={
+          success:0,
+          failed:0,
+          time:0,
+          average:0,
+          warn:"",
+          slow:"",
+          repeat:""
+        }
+        let tt=t.term[key]
+        x.list.forEach(y=>{
+          if(!t.type){
+            if(y.scenario){
+              t.type="scenario"
+            }else{
+              t.type="test"
+            }
+            t.name=y.name
+            t.code=y.code
+          }
+          if(y.result!="failed"){
+            tt.success++
+          }else{
+            tt.failed++
+          }
+          tt.time+=parseInt(y.time)
+          if(y.slow){
+            slow.add(y.slow)
+          }
+          if(y.repeat){
+            repeat.push(y.repeat)
+          }
+        })
+        tt.average=parseInt(tt.time/(tt.success+tt.failed))
+        slow=[...slow]
+        repeat=[...repeat]
+        if(slow.length){
+          slow=slow.map(x=>getScenarioTitle(x))
+          tt.slow="Slow in scenarios:\n"+slow.join("\n")
+        }
+        if(repeat.length){
+          repeat=repeat.map(x=>getScenarioTitle(x))
+          tt.repeat="Too many repeat in scenarios:\n"+repeat.join("\n")
+        }
+        tt.msg=(tt.slow+"\n\n"+tt.repeat).trim()
+
+        if(tt.msg){
+          tt.warn=`<span class='bz-mini-letter' title='${tt.msg}'>⚠️</span>`
+          rm.warn="<span class='bz-mini-letter'>⚠️</span>"
+        }
+        
+        if(!tts.find(y=>{
+          if(y.code==x.list[0].code){
+            y.term[key]=t.term[key]
+            return 1
+          }
+        })){
+          tts.push(t)
+        }
+        rm.success+=tt.success
+        rm.failed+=tt.failed
+        rm.time+=tt.time
+      })
+    }
+    
+    function getScenarioTitle(x){
+      let o=fd.scenarioMap[x]
+      if(o){
+        return o.title
+      }else{
+        return x
+      }
+    }
+  },
+  buildMasterAnalysisData:function(){
+    let fd=formatter.data;
+    let mp=fd.moduleMap
+    for(let k in fd.scenarioMap){
+      let s=fd.scenarioMap[k]
+      if(!s.analyzed){
+        if(!s.time){
+          s.time=formatter.getSpendTime(s.start,s.endTime)
+        }
+        let sc=s.code.split("-")
+        let cs={
+          m:sc[0],
+          t:sc[1],
+          w:sc.pop(),
+          code:`${sc[0]}.${sc[1]}`,
+          name:s.name,
+          idx:parseInt(sc[2]||0),
+          title:s.title,
+          time:parseInt(s.time),
+          slow:parseInt(s.time)>parseInt(fd.setting.scenarioTime)?s.code:0,
+          scenario:1,
+          result:s.result
+        }
+        
+        analyzer.addAnalyzeData(mp,cs,fd.scenarioAnaMap,"master")
+        formatter.loadModuleInfo(s.init.org);
+        formatter.loadModuleInfo(s.details.org);
+        // analyzer.retrieveAnalyzeData("master",mp,s.details.org,1,cs)
+        s.analyzed=analyzer.retrieveAnalyzeData("master",mp,s.details.org,1,cs)
+      }
+    }
+  },
+  getTestTreeByLevel:function(v,level){
+    let r;
+    if(level){
+      r=`/[0-9]+: {${level*6+3}}(>+ Loading [^\[]+|<+ [^\[]+)Test \\[m[0-9]+\\.t[0-9]+[^><]+(>|<)+/gms`
+    }else{
+      r=`/[0-9]+:   (>+ Loading |<+ [^\[]+ Feature - )Scenario \\[m[0-9]+\\.t[0-9]+[^><]+(>|<)+/gms`
+    }
+    r=eval(r)
+    return v.match(r)||[]
+  },
 }
 
 setTimeout(()=>{

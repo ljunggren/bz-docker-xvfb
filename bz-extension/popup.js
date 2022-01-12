@@ -52,6 +52,8 @@ function init(){
   // var image = document.createElement("img");
   // image.src = chrome.runtime.getURL("img/boozang128.png");
   // document.getElementsByTagName("body")[0].appendChild(image);
+  var version = chrome.app.getDetails().version;
+  $("#version").text("Version: "+ version);
 
   chrome.storage.sync.get("bz-log-format",function(d){
     console.log("data:")
@@ -66,12 +68,12 @@ function init(){
         initTime:2,
         autoFormat:false,
         retrieveWorkerLog:false,
-        identifyMaster:`function(){
-  return location.href.match(/[\/]console(Full)?$/)
+        identifyMaster:`function(url){
+  return (url||location.href).match(/[\/]console(Full)?$/)
 }`,
-      identifyWorker:`function(){
+      identifyWorker:`function(url){
   return [2,3].map(x=>{
-    return location.href.replace(/[\\/][0-9]+[\\/]console(Full)?/,"/ws/out_"+x+".log")
+    return (url||location.href).replace(/[\\/][0-9]+[\\/]console(Full)?/,"/ws/out_"+x+".log")
   })
 }`
       }
