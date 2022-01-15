@@ -1589,11 +1589,11 @@ input[type=number]{
     }
 
     function handleSetting(v){
-      let x=v.match(/(http.+[\/].+)\/extension\?token\=.+#.+/gm);
+      let x=v.match(/(http.+[\/].+)\/extension.*[?&]token\=.+#.+/gm);
       
       if(x){
         x=x.find(y=>y.match(/\/run/))||x[0]
-        x=x.match(/(http.+[\/].+)\/extension\?token\=.+#([^\/]+)[\/]([^\/]+)([\/](m[0-9]+[\/]t[0-9]+)[\/]run)?/);
+        x=x.match(/(http.+[\/].+)\/extension.*[?&]token\=.+#([^\/]+)[\/]([^\/]+)([\/](m[0-9]+[\/]t[0-9]+)[\/]run)?/);
         
         fd.startUrl=x[1]+"/extension?id="+x[2]+"#"+x[2]+"/"+x[3]+"/"
         fd.host=x[1]
@@ -1642,7 +1642,7 @@ input[type=number]{
       if(v){
         let map={}
         v.forEach(x=>{
-          x=x.match(/(m[0-9]+.t[0-9])+\(?([0-9]+)?/)
+          x=x.match(/(m[0-9]+.t[0-9]+)+\(?([0-9]+)?/)
           let k=x[1].replace(".","-")
           if(!x[2]){
             if(map[k+"-0"]){
@@ -1689,7 +1689,9 @@ input[type=number]{
           s.bug.type="-new"
         }else{
           let link=s.org.match(/Root cause link: ?([^\n]+)\n/)
-          msg+="\n\n"+link[0]
+          if(link){
+            msg+="\n\n"+link[0]
+          }
           s.bug.path=(link||w)[1]
         }
 
@@ -2273,11 +2275,15 @@ input[type=number]{
             return alert("Load log failed! Please be sure the url/no. is correct.")
           }
           v.list.push(vv)
-          vv=formatter.getLogList(masterUrl)
-          loadPages(vv,0,function(vvv){
-            v.list.push(...vvv)
-            loadLogs(vs,i+1,fun)
-          })
+          if(!v.url){
+            vv=formatter.getLogList(masterUrl)
+            loadPages(vv,0,function(vvv){
+              v.list.push(...vvv)
+              loadLogs(vs,i+1,fun)
+            })
+          }else{
+            fun(vs)
+          }
         })
       }else{
         fun(vs)
@@ -2559,7 +2565,7 @@ input[type=number]{
             if(xx){
               eval("xx=/"+xx+"/i")
               os=os.filter(x=>{
-                if(!x.title.match(xx)&&!x.init.org.match(xx)&&!x.details.org.match(xx)){
+                if(!foundTxt(x,xx)){
                   formatter.hideScenario(x)
                 }else{
                   return 1
@@ -2595,7 +2601,7 @@ input[type=number]{
       }
       if(v){
         os=os.filter(x=>{
-          if(!x.title.match(v)&&!x.details.org.match(v)&&!x.init.org.match(v)&&!x.declare.org.match(v)){
+          if(!foundTxt(x,v)){
             formatter.hideScenario(x)
           }else{
             return 1
@@ -2603,6 +2609,34 @@ input[type=number]{
         })
       }
       formatter.buildAllDetails(os.map(x=>x.code))
+    }
+    
+    function foundTxt(x,f){
+      if(x.title.match(f)){
+        return 1
+      }
+      if(x.init.org){
+        if(x.init.org.match(f)){
+          return 1
+        }
+      }
+      if(x.declare.org){
+        if(x.declare.org.match(f)){
+          return 1
+        }
+      }
+      if(x.details.org){
+        if(x.details.org.match(f)){
+          return 1
+        }
+      }
+      if(x.end.org){
+        if(x.end.org.match(f)){
+          return 1
+        }
+      }else if(x.org){
+        return x.org.match(f)
+      }
     }
   },
   hideScenario:function(o){
