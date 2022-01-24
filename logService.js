@@ -585,8 +585,12 @@ const Service = {
     (async () => {
       await Service.page.close()
       await Service.browser.close()
-      killer(Service.browser.process().pid, 'SIGKILL');
-      process.exit(Service.result)
+      setTimeout(()=>{
+        killer(Service.browser.process().pid, 'SIGKILL');
+        setTimeout(()=>{
+          process.exit(Service.result)
+        },1000)
+      },1000)
     })()
   },
   async handleTimeout(timeout,msg){
@@ -648,6 +652,9 @@ const Service = {
         Service.consoleNum++;
         if(msg.trim().match(/^<<<</)){
           Service.lanuchTest--
+          if(Service.lanuchTest<0){
+            Service.lanuchTest=0
+          }
           msg=" ".repeat(Service.lanuchTest*2)+msg.replace(/\] [0-9:]+ /,"] "+getSpendTime()+" ")
         }else if(msg.trim().match(/^>>>>/)){
           if(msg.includes(">>>> Loading Scenario")){
