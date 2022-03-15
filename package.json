@@ -1,11 +1,13 @@
 {
   "name": "boozang",
-  "version": "4.2.1",
+  "version": "4.3.1",
   "description": "An Simple Driver for Chrome Headless basded on Puppeteer",
   "dependencies": {
     "node-options": "latest",
     "puppeteer": "latest",
-    "tree-kill": "latest"
+    "tree-kill": "latest",
+    "express": "latest",
+    "socket.io": "^4.1.2"
   },
   "bin": {
     "boozang": "index.js"

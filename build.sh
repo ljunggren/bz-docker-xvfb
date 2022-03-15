@@ -1,6 +1,5 @@
 # Cleanup
 rm -rf *.log
-rm -rf *.html
 rm -rf *.png
 rm -rf *.list
 

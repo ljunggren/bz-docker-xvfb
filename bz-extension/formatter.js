@@ -683,9 +683,10 @@ body>.bz-log-box .bz-sort-bar{
 .bz-tmp-screenshot{
   display: none;
   right: 160px;
-  position: absolute;
-  margin-top: -30px;
+  position: fixed;
   min-width: 400px;
+  top: 10px;
+  z-index: 11111111111111111111111111;
 }
 .bz-tmp-screenshot:hover{
   display:block;
@@ -1357,7 +1358,7 @@ input[type=number]{
       ctrl=`
         ${ctrl}
         <button key="${o.code}" class="bz-icon bz-declare-btn bz-declare">(${o.declare.time||""})</button>
-        <button title='${o.bug&&o.bug.msg}' class="bz-icon bz${o.bug?o.bug.type:""}-bug ${!o.bug&&'bz-hide'}" hash="${o.bug&&o.bug.hash}" path="${o.bug&&o.bug.path}"></button>
+        <button title='${o.bug&&o.bug.msg&&o.bug.msg.replace(/[<]/g,"&lt;").replace(/[>]/g,"&gt;")}' class="bz-icon bz${o.bug?o.bug.type:""}-bug ${!o.bug&&'bz-hide'}" hash="${o.bug&&o.bug.hash}" path="${o.bug&&o.bug.path}"></button>
         <button class="bz-icon bz-camera ${o.bug?o.camera?"":"bz-disable-icon":"bz-hide"}" title="${o.cameraMsg||""}" path="${o.camera||""}"></button>
       `
     }
@@ -1697,8 +1698,14 @@ input[type=number]{
       }else{
         fd.failedScenarios++
       }
-      fd.totalTests+=s.org.match(/\n[0-9]+: +>{4} Loading .+Test \[m[0-9].+$/gm).length
-      fd.totalActions+=s.org.match(/\n[0-9]+: ##Action.+$/gm).length
+      let ts=s.org.match(/\n[0-9]+: +>{4} Loading .+Test \[m[0-9].+$/gm)
+      if(ts){
+        fd.totalTests+=ts.length
+        ts=s.org.match(/\n[0-9]+: ##Action.+$/gm)
+        if(ts){
+          fd.totalActions+=ts.length
+        }
+      }
     }
     
     function handleStartTime(s){
