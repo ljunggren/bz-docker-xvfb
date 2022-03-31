@@ -4,7 +4,7 @@ cat VERSION
 
 echo Using arguments: "$@"
 
-if [ $@ == "center" ]
+if [ "$@" == "center" ]
 then
   echo "Running in center mode"
   node server
