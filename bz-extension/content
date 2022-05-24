@@ -36,7 +36,7 @@ chrome.runtime.onMessage.addListener(handleMsg);
 let waitCodeTimer
 function handleMsg(_event, _, sendResponse, codeTime) {  
   //_console("content get message: ",_event)
-  if(window.name!="bz-master"&&(!window.ecMap||!window[ecMap.i]||!window[ecMap.u])){
+  if(window.name!="bz-master"&&(!window.ecMap||!window[ecMap.i]||!window[ecMap.u]||!window[ecMap.css])){
     if(bzIframeId===null||bzIframeId===undefined){
       return
     }
@@ -243,6 +243,8 @@ function _insertCssAndClientCode(_msg,_time){
   _time=_time||Date.now()
   if(document && document.body && document.body.innerHTML && (["complete","interactive"].includes(document.readyState) || Date.now()-_time>100000)){
     var o=document.createElement("style");
+    o.id="bz-css"
+
     o.innerHTML=_msg._css;
     document.body.parentNode.append(o);
     
