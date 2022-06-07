@@ -463,13 +463,12 @@ const Service = {
         videoFilename
     ].join(' ');
       exec(_ffmpegCommand, (error, stdout, stderr) => {
-          if (error) throw new Error(error);
+          // if (error) throw new Error(error);
           console.log(stdout);
           console.log(stderr);
       });
   },
   buildVideoImg:function(msg){
-    console.log("Skipping video...");  
     msg=msg.split("video-img: ")[1]
     let time=Date.now()
     let screenshotFile = Service.curVideoFolder+"/" + Date.now()+".jpg";
@@ -550,9 +549,8 @@ const Service = {
           console.log("* Delete video folder: "+Service.curVideoFolder)
           console.log("*****************************************************************")
           fs.rmSync(Service.curVideoFolder, { recursive: true, force: true });
-        }else{
+        }else if (Service.video!="none") {
           Service.createVideo(Service.curVideoFolder+"/images.txt",Service.folder + "/" + Service.currTest+".webm")
-
         }
         Service.consoleMsg("Exit with status code: ", Service.result);
       },

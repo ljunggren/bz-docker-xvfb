@@ -118,21 +118,27 @@ function start(reset){
     // Setup popup
     let popup = null;
     function setupPopup() {
-      /** 
-      try{
-        popup = pages[pages.length-1];
-      
-        popup.setViewport({
-          width: parseInt(width),
-          height: parseInt(height)-100
-        });
-  
-        popup.on("error", appPrintStackTrace);
-        popup.on("pageerror", appPrintStackTrace);
-        Service.setPopup(popup)
-      }catch(e){
-        console.log(e.stack)
-      }*/
+      console.log("Goto set pop window size")
+      setTimeout(()=>{
+        doIt()
+      },3000)
+
+      function doIt(){
+        try{
+          popup = pages[pages.length-1];
+          popup.setViewport({
+            width: parseInt(width),
+            height: parseInt(height)-100
+          });
+    
+          popup.on("error", appPrintStackTrace);
+          popup.on("pageerror", appPrintStackTrace);
+          Service.setPopup(popup)
+          console.log("Set pop window size done!")
+        }catch(e){
+          console.log(e.stack)
+        }
+      }
     }
 
     let pages = await browser.pages();

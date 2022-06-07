@@ -1,4 +1,4 @@
-FROM node:16
+FROM node:14
 
 # Install dependencies
 RUN apt-get update &&\
@@ -18,7 +18,9 @@ COPY package.json /app
 
 # Install dependencies
 RUN npm install
+
 COPY . /app
+
 RUN chmod a+x wrap.sh
 RUN mkdir -p /var/boozang
 RUN chmod a+rw /var/boozang
