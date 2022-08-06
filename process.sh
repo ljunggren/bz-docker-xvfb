@@ -6,4 +6,3 @@ cp -r ../../Workspace/bz-puppeteer/index.html index.html
 cp -r ../../Workspace/bz-puppeteer/server.js server.js
 cp -r ../../Workspace/bz-puppeteer/config config
 cp -r ../../Workspace/bz-puppeteer/logService.js logService.js
-cp -r ../../Workspace/bz-puppeteer/process_videos.sh process_videos.sh

@@ -1,6 +1,5 @@
 const fs = require('fs');
 const killer = require('tree-kill');
-const { exec } = require('child_process');
 
 const Service = {
   stdTimeout:120000,
@@ -22,44 +21,20 @@ const Service = {
       Service.nextResetTime=Date.now()+((parseInt(Service.testReset)||1)*60000)
     }
   },
-  logMonitor(page,testReset,keepalive,reportPrefix,inService, logLevel, browser, video,folder,group,userKey){
+  logMonitor(page,testReset,keepalive,reportPrefix,inService, logLevel, browser, video, saveVideo){
     this.inService=inService;
     this.testReset=testReset;
-
-    this.group=group;
-    this.userKey=userKey;
-
     Service.setNextResetTime()
 
     this.keepalive=keepalive;
     this.video=video;
     this.page=page;
+    this.saveVideo = saveVideo;
 
     this.logLevel=logLevel;
 
     if (this.video && this.video != "none") {
       Service.consoleMsg("Running in video mode");
-      folder+="/video"
-      // if(fs.existsSync(folder)){
-      //   fs.rmSync(folder, { recursive: true, force: true });
-      // }
-      if(!fs.existsSync(folder)){
-        fs.mkdirSync(folder);
-      }
-      if(group){
-        folder+="/"+group
-        if(!fs.existsSync(folder)){
-          fs.mkdirSync(folder);
-        }
-      }
-      this.folder=folder;
-      if(userKey){
-        folder+="/"+userKey
-        if(!fs.existsSync(folder)){
-          fs.mkdirSync(folder);
-        }
-      }
-      Service.videoFolder=folder
     }
 
     Service.consoleMsg("Initializing logMonitor");
@@ -67,14 +42,14 @@ const Service = {
     if (reportPrefix) {
       Service.consoleMsg("Override report prefix: " + reportPrefix);
       Service.reportPrefix=reportPrefix + "_";
-    }
+    } 
 
    // page.on('console', (log) => console[log._type](log._text));
 
 
     page.on('console', msg => {
       let timeout,t;
-      let msgType=msg._type;
+      let msgType=msg.type();
 
       msg = (!!msg && msg.text()) || "def";
       msg=trimPreMsg(msg)
@@ -208,21 +183,6 @@ const Service = {
       timeout:Service.stdTimeout
     })
     Service.addTask({
-      key:"newVideo",
-      fun:function(msg){
-        Service.buildVideoFolder(msg)
-      },
-      timeout:Service.stdTimeout
-    })
-    Service.addTask({
-      key:"video-img",
-      fun:function(msg){
-        Service.buildVideoImg(msg)
-      },
-      noLog:1,
-      timeout:Service.stdTimeout
-    })
-    Service.addTask({
       key:"update-std-timeout:",
       fun(msg){
         Service.stdTimeout = (parseInt(msg.split(this.key)[1].trim())||120000);
@@ -272,7 +232,7 @@ const Service = {
       fun(msg){
         Service.issueResetCount++
         if(Service.issueResetCount>2){
-          Service.shutdown("Issue happened multiple times!")
+          Service.shutdown(_formatTimestamp()+": Issue happened multiple times!")
         }else{
           Service.cancelChkCoop()
           Service.reset()
@@ -365,6 +325,7 @@ const Service = {
 
         if(Service.video && Service.video != "none"){
           Service.page.evaluate((v)=>{
+            Service.consoleMsg("Initializing video capture...");
             BZ.requestVideo()
           });
         }
@@ -438,57 +399,6 @@ const Service = {
     clearTimeout(Service.status)
     Service.status=v
   },
-  buildVideoFolder:function(msg){
-    msg=msg.split("newVideo: ")[1]
-    Service.curVideoFolder=Service.videoFolder+"/"+msg
-    Service.currTest=msg
-    if(!fs.existsSync(Service.curVideoFolder)){
-      console.log("/////////////////////////////////////////////////////////////////")
-      console.log("* Create video folder: "+Service.curVideoFolder)
-      console.log("/////////////////////////////////////////////////////////////////")
-      fs.mkdirSync(Service.curVideoFolder)
-    }
-  }, 
-  createVideo(imagesFilename,videoFilename) {
-    console.log("Building video:",imagesFilename,"#",videoFilename);
-      const _ffmpegCommand = [
-        'ffmpeg',
-        '-loglevel panic',
-        '-hide_banner',
-        '-y -r 1/2',
-        '-f concat',
-        '-safe 0',
-        `-i ${imagesFilename}`,
-        '-r 1',
-        videoFilename
-    ].join(' ');
-      exec(_ffmpegCommand, (error, stdout, stderr) => {
-          // if (error) throw new Error(error);
-          console.log(stdout);
-          console.log(stderr);
-      });
-  },
-  buildVideoImg:function(msg){
-    msg=msg.split("video-img: ")[1]
-    let time=Date.now()
-    let screenshotFile = Service.curVideoFolder+"/" + Date.now()+".jpg";
-
-    let _base64Data = msg.replace(/^data:image\/([^;]+);base64,/, "");
-    
-    fs.writeFile(screenshotFile,_base64Data,'base64', (err)=>{
-      if (err) {
-        // Service.shutdown("Error: on output file: "+screenshotFile+", "+ err.message)
-      }else{
-        Service.consoleMsg("Report "+screenshotFile+" saved.")
-        Service.curImageTxt=Service.curImageTxt||""
-        Service.curImageTxt+=`file '${screenshotFile}'\n`
-        fs.writeFile(Service.curVideoFolder+"/images.txt",Service.curImageTxt,(err)=>{
-          console.log("Store screenshot time: "+(Date.now()-time))
-        })
-      }
-    })
-
-  },
   setRunTasks(){
     Service.consoleMsg("Set run tasks")
     clearTimeout(Service.idlingTimer)
@@ -508,12 +418,46 @@ const Service = {
     })
 
     Service.addTask({
+      key:"videostart:",
+      fun(msg){
+        (async () => {
+          let videoFile = msg.split("videostart:")[1].split(",")[0]+".mp4";
+           Service.consoleMsg("Start recording video: ", videoFile);
+           Service.capture = await Service.saveVideo(Service.popup||Service.page, Service.reportPrefix + videoFile, {followPopups:true, fps: 5});      
+        })()
+      },
+      timeout:Service.stdTimeout
+    })
+
+    Service.addTask({
+      key:"videostop:",
+      fun(msg){
+        (async () => {
+          let success = msg.includes(",success");
+          let videoFile = msg.split("videostop:")[1].split(",")[0]+".mp4";
+          Service.consoleMsg("Stop recording video: ", videoFile);
+          await Service.capture.stop();
+          if (success && Service.video != "all"){
+            Service.consoleMsg("Test success. Deleting video: " + videoFile);
+            fs.unlinkSync(Service.reportPrefix + videoFile);
+          }
+          await (()=>{
+            Service.page.evaluate((v)=>{
+              BZ.savedVideo()
+            });
+          })()
+        })()
+      },
+      timeout:Service.stdTimeout
+    })
+
+    Service.addTask({
       key:"screenshot:",
       fun(msg){
         msg=msg.split("screenshot: ")[1]
         msg=msg.split("\n")
         console.log(msg[0])
-        let screenshotFile = "/var/boozang/" + msg[0]+".jpg";
+        let screenshotFile = "/var/boozang/" + msg[0]+".png";
 
         let _base64Data = msg[1].replace(/^data:image\/([^;]+);base64,/, "");
 
@@ -544,14 +488,6 @@ const Service = {
       fun(msg){
         msg=msg.split("BZ-Result:")[1].trim()
         Service.result = msg == "Success" ? 0:2;
-        if(!Service.result&&(Service.video=="error")){
-          console.log("*****************************************************************")
-          console.log("* Delete video folder: "+Service.curVideoFolder)
-          console.log("*****************************************************************")
-          fs.rmSync(Service.curVideoFolder, { recursive: true, force: true });
-        }else if (Service.video!="none") {
-          Service.createVideo(Service.curVideoFolder+"/images.txt",Service.folder + "/" + Service.currTest+".webm")
-        }
         Service.consoleMsg("Exit with status code: ", Service.result);
       },
       timeout:Service.stdTimeout
@@ -828,9 +764,4 @@ function testReset(){
     }catch(ex){}
     testReset()
   },30000)
-}
-
-function formatTimestamp(){
-  let d=new Date()
-  return d.getFullYear()+"-"+_formatNumberLength(d.getMonth()+1)+"-"+_formatNumberLength(d.getDate())+"-"+_formatNumberLength(d.getHours())+"-"+_formatNumberLength(d.getMinutes())+"-"+_formatNumberLength(d.getSeconds())
 }

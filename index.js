@@ -21,7 +21,6 @@ const opts = {
   "docker": false,
   "sleep":0,
   "keepalive": false,
-  "video": "none",
   "testreset":false,
   "loglevel": "debug",
   "debugIDE":false
@@ -46,7 +45,6 @@ let testReset=opts.testreset;
 let inService;
 const file = opts.file;
 const logLevel=opts.loglevel;
-const video = opts.video||"all";
 
 if (result.errors || !result.args || result.args.length !== 1) {
   console.log('USAGE: boozang [--token] [--docker] [--keepalive] [--testreset] [--verbose] [--userdatadir] [--listscenarios] [--listsuite] [--width] [--height] [--screenshot] [--file=report] [url]');
@@ -118,34 +116,22 @@ function start(reset){
     // Setup popup
     let popup = null;
     function setupPopup() {
-      console.log("Goto set pop window size")
-      setTimeout(()=>{
-        doIt()
-      },3000)
+      popup = pages[pages.length-1]; 
+      popup.setViewport({
+        width: parseInt(width),
+        height: parseInt(height)-100
+      });
 
-      function doIt(){
-        try{
-          popup = pages[pages.length-1];
-          popup.setViewport({
-            width: parseInt(width),
-            height: parseInt(height)-100
-          });
-    
-          popup.on("error", appPrintStackTrace);
-          popup.on("pageerror", appPrintStackTrace);
-          Service.setPopup(popup)
-          console.log("Set pop window size done!")
-        }catch(e){
-          console.log(e.stack)
-        }
-      }
+      popup.on("error", appPrintStackTrace);
+      popup.on("pageerror", appPrintStackTrace);
+      Service.setPopup(popup)
     }
 
     let pages = await browser.pages();
     browser.on('targetcreated', async () => {
           //console.log('New window/tab event created');
           pages = await browser.pages();
-          console.log("Pages length " + pages.length);
+          //console.log("Pages length " + pages.length);
           setupPopup(); 
           Service.setPage(page,browser);  
     });
@@ -173,14 +159,7 @@ function start(reset){
     }
     
     url=url.replace("#","&docker=1#")
-    let group=url.match(/group=([0-9]+)/);
-    if(group){
-      group=group[1]
-    }
-    let userKey=url.match(/key=([0-9]+)/)
-    if(userKey){
-      userKey=userKey[1]
-    }
+    
     console.log("url: "+url)
 
     let inService=0;
@@ -194,7 +173,7 @@ function start(reset){
     console.log(1)
 
     // Assign all log listeners
-    Service.logMonitor(page,testReset,keepalive,file,inService,LogLevelArray,browser,video,docker ? "/var/boozang/":__dirname,group,userKey);
+    Service.logMonitor(page,testReset,keepalive,file,inService,LogLevelArray);
     console.log(2+": "+tests)
     if(tests){
       console.log("Going to post tmp tasks .....")
