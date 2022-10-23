@@ -1,6 +1,7 @@
 let _appUrl="https:/"+"/ai.boozang.com",_masterTabId,_masterFrameId,_masterUrl,_ctrlTabId,_ctrlWindowId,curElement,_frameIds={},_plugInCode,_bzEnvCode,_css,_status=_newStatus=0,_lastExeActionReq,_doingPopCtrl,_curTest,_data,_curAction,_shareData={},_ctrlFrameId;
-let _lastErrPage=0,_loadPageInfo,assignfirmeCall,ignoreReqs="",_topFrameId,_uncodeFrames=[];
+let _lastErrPage=0,_loadPageInfo,assignfirmeCall,ignoreReqs="",_topFrameId=0,_uncodeFrames=[];
 let _ignoreList=["https://vars.hotjar.com"],_lastIframeRequest=0,_dblCheckTime=0,extendTopScript="",extendEndScript="";
+let bzClient;
 let funMap={
   cleanMaster:function(){
     cleanMaster()
@@ -42,8 +43,33 @@ let funMap={
       img.remove()
     }
   },
-  openWindow:function(s,f,d){
-    window.open(d.url,d.name,d.size)
+  openWindow:function(s,f,d,c){
+    if(d.name=="bz-client"){
+      bzClient=window.open(d.url,d.name,d.size);
+      bzClient.focus()
+      // setTimeout(()=>{
+      //   bzClient=window.open(d.url,d.name,d.size);
+      //   bzClient.focus()
+      // },1)
+    }else{
+      window.open(d.url,d.name,d.size);
+    }
+    c&&c({})
+  },
+  focusTW:function(){
+    if(bzClient&&!bzClient.closed){
+      bzClient.focus()
+    }
+  },
+  closeTW:function(){
+    try{
+      bzClient&&!bzClient.closed&&bzClient.close()
+    }catch(e){
+      debugger
+    }
+  },
+  blurTW:function(){
+    bzClient.blur()
   },
   isRequestCompleted:function(bkScope,bkFun,_rList){
     _rList.forEach((r,i)=>{
@@ -145,7 +171,7 @@ let funMap={
       var v=_url.split("/");
       var n=v.pop()||v.pop()
 
-      var t=n.split(".")[1]||"";
+      var t=n.split(".").pop()||"";
       if(["jpg","png","svg","bmp","gif","jpeg","ico"].includes(t)){
         t="image/"+t;
       }else if("txt"==t){
@@ -580,9 +606,9 @@ chrome.runtime.onMessage.addListener(function(_msg, t, _sendResponse) {
       //to tell master the current client tab id
       chrome.tabs.sendMessage(_masterTabId, {tw:_ctrlTabId,topFrame:t.frameId,tab:"master"});
     }
-    if(t.url.startsWith(_appUrl)){
-      return alert("Testing on Boozang sites not supported!");
-    }
+    // if(t.url.startsWith(_appUrl)){
+    //   return alert("Testing on Boozang sites not supported!");
+    // }
     if(isIgnoreFrame(t.url)){
       return
     }
@@ -844,7 +870,9 @@ chrome.webRequest.onErrorOccurred.addListener(function(v){
 },{urls: ["<all_urls>"]});
 function cleanMaster(){
   var tabId=_ctrlTabId
-  _setCodeToContent("window.close();",_topFrameId,tabId);
+  if(tabId!=_masterTabId){
+    _setCodeToContent("window.close();",_topFrameId,tabId);
+  }
   _status=""
   _masterTabId=0;
   _masterFrameId=0;

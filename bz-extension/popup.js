@@ -9,9 +9,7 @@ $("#ide").click(()=>{
   chrome.tabs.create({url: getServerUrl()+`/extension?id=${p}#${p}/${v}/`})
 })
 $("#formatPage").click(()=>{
-  console.log("click format page 1")
   chrome.tabs.query({active: true, currentWindow: true}, function(v){
-    console.log("click format page 2")
     bzFormat.gotoOrg=0
     chrome.runtime.sendMessage({ pop:1,fun:"formatLog",data:{
       id:v[0].id,
@@ -46,11 +44,20 @@ $(".bz-tab").click(function(){
   updateSetting()
 });
 
+// function getPageInfo(){
+//   chrome.tabs.query({active: true, currentWindow: true}, function(v){
+//     chrome.runtime.sendMessage({ pop:1,fun:"getPageInfo",data:v[0].id},(v)=>{
+//       console.log(v)
+//     });
+    
+//   });
+// }
+
 function init(){
   // var image = document.createElement("img");
   // image.src = chrome.runtime.getURL("img/boozang128.png");
   // document.getElementsByTagName("body")[0].appendChild(image);
-  var version = chrome.runtime.getManifest().version;
+  var version = chrome.app.getDetails().version;
   $("#version").text("Version: "+ version);
 
   chrome.storage.sync.get("bz-log-format",function(d){
@@ -68,7 +75,7 @@ function init(){
         autoFormat:false,
         retrieveWorkerLog:false,
         identifyMaster:`function(url){
-  return (url||location.href).match(/console(Full)?$/)
+  return (url||location.href).match(/[\/]console(Full)?$/)
 }`,
       identifyWorker:`function(url){
   url=url||location.href;
@@ -335,3 +342,4 @@ function updateSetting(){
   }
 }
 init();
+// getPageInfo();

@@ -23,7 +23,8 @@ const opts = {
   "keepalive": false,
   "testreset":false,
   "loglevel": "debug",
-  "debugIDE":false
+  "debugIDE":false,
+  proxy:false
 }
 
 // Remove the first two arguments, which are the 'node' binary and the name
@@ -39,6 +40,7 @@ const listscenarios=opts.listscenarios;
 const listsuite=opts.listsuite;
 const debugIDE=opts.debugIDE;
 const sleep=opts.sleep;
+const proxy=opts.proxy;
 
 let keepalive=opts.keepalive;
 let testReset=opts.testreset;
@@ -47,7 +49,7 @@ const file = opts.file;
 const logLevel=opts.loglevel;
 
 if (result.errors || !result.args || result.args.length !== 1) {
-  console.log('USAGE: boozang [--token] [--docker] [--keepalive] [--testreset] [--verbose] [--userdatadir] [--listscenarios] [--listsuite] [--width] [--height] [--screenshot] [--file=report] [url]');
+  console.log('USAGE: boozang [--token] [--docker] [--keepalive] [--testreset] [--verbose] [--userdatadir] [--listscenarios] [--listsuite] [--width] [--height] [--screenshot] [--file=report] [--proxy] [url]');
   process.exit(2);
 }
 
@@ -159,8 +161,6 @@ function start(reset){
     }
     
     url=url.replace("#","&docker=1#")
-    
-    console.log("url: "+url)
 
     let inService=0;
     console.log("Browser URL: "+url)
@@ -203,6 +203,7 @@ function start(reset){
 
     const version = await page.browser().version();
     console.log("Running Chrome version: " + version);
+    console.log("Browser URL: "+url)
     const response = await page.goto(url);
 
     page.on("error", idePrintStackTrace);
@@ -215,3 +216,17 @@ setTimeout(()=>{
   console.log("Finished sleep!")
   start()
 },sleep*1000)
+
+
+if(proxy){
+  startProxy()
+}
+
+function startProxy(){
+  const express = require('./proxy/express')
+  let port=parseInt(proxy)
+  if(!port||port<80){
+    port=8080
+  }
+  express(port);
+}

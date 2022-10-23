@@ -5,6 +5,9 @@ let ideId,appId,_ctrlWindowId,initAppScript=[],
 let lastErrPage=0,_loadPageInfo,assignfirmeCall,ignoreReqs="";
 let _lastIframeRequest=0,_dblCheckTime=0,extendTopScript="",extendEndScript="";
 let funMap={
+  getInfo:function(s,f){
+    f({ideId:ideId,appId:appId})
+  },
   exeFun:function(c,t,bk){
     let ks=c[ecMap.s].split(".")
     let r=ks.shift(),idx=-1
@@ -278,9 +281,6 @@ let funMap={
   registerTab:function(_msg,t,_sendResponse){
     if(_msg.name.includes("bz-client")||appId==t.tab.id){
       let v
-      if(t.url.includes("boozang.com")){
-        return alert("Testing on Boozang sites not supported!");
-      }
 
       // appListenerMap[t.frameId]=funMap.addListener()
       funMap.log("Register App ...")
@@ -288,6 +288,7 @@ let funMap={
         appId=t.tab.id;
         _ctrlWindowId=t.tab.windowId;
         //to tell master the current client tab id
+        debugger
         v=funMap.buildBZRequestData("ide","bzTwComm","setAppInfo",[{appId:appId,appUrl:t.url}])
         trigger(v,ideId);
       }else{
@@ -459,6 +460,8 @@ chrome.runtime.onMessage.addListener(function(msg, t, sendResponse) {
 
   if(msg.registerTab){
     funMap.registerTab(msg,t,sendResponse)
+  }else if(msg.reqData){
+    sendResponse(shareData)
   }else{
     funMap.listener(msg,t,sendResponse)
   }
@@ -663,11 +666,11 @@ function trigger(v,tabId,iframeId,fun,init){
         return
       }
       if(!v.i&&(!window.bzTwComm||!bzTwComm.appReady)){
-        console.log("deloy on:")
-        console.log(v.v)
+        // console.log("deloy on:")
+        // console.log(v.v)
         return setTimeout(()=>{
           return doIt()
-        },10)
+        },100)
       }
       try{
         return bzTwComm.setRequest(v.v)
@@ -702,13 +705,13 @@ function resetApp(){
         allFrames:true
       },
       func:()=>{
-        registerTab()
+        return registerTab()
       },
       args:[]
     },
     r => {
-      funMap.log("rigger app result: "+r.result)
-      if(r.result){
+      funMap.log("trigger app result-2: "+r[0].result)
+      if(r[0].result){
         funMap.log("Get app response ...")
         clearTimeout(resetTime)
       }

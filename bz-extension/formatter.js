@@ -1412,7 +1412,8 @@ input[type=number]{
   getLogList:function(masterUrl){
     let v;
     try{
-      v=BZ.eval.exe(`(${formatter.data.setting.identifyWorker})(masterUrl)`,{masterUrl:masterUrl})
+      eval("v="+formatter.data.setting.identifyWorker)
+      v= v(masterUrl)
       if(!v||v.constructor!=Array||v.includes(masterUrl)){
         v=[]
       }
@@ -1892,10 +1893,11 @@ input[type=number]{
       }
     }
     function handleCamera(s){
-      let w=s.org.match(/\n[0-9]+\: Screenshot\:([0-9a-f]{32})/i);
+      let w=s.org.match(/\n[0-9]+\: Screenshot\:([0-9a-f]{32})/ig);
       if(w){
-        s.camera=w[1]
-        formatter.cameraList.push(w[1])
+        w=w.pop().match(/Screenshot\:([0-9a-f]{32})/i)[1]
+        s.camera=w
+        formatter.cameraList.push(w)
         formatter.element.header.find(".bz-camera").attr({disabled:false})
       }else{
         s.cameraMsg="There is no screenshot for API test case. Or got an error on loading page."
@@ -2410,7 +2412,9 @@ input[type=number]{
   isMasterPage:function(v){
     if(v.identifyMaster){
       try{
-        return BZ.eval.exe(`(${v.identifyMaster})()`)
+        let f;
+        eval("f="+v.identifyMaster)
+        return f()
       }catch(ex){
         alert("Identify page script issue: "+ex.message)
       }
@@ -2847,7 +2851,7 @@ input[type=number]{
       try{
         if(v[0]!='"'&&v[0]!="'"){
           if(v.match(/^[\/].+[\/][i]?$/)){
-            v=BZ.eval.exe(v)
+            v=eval(v)
           }else{
             v=v.toLowerCase().split(",")
           }
@@ -3008,7 +3012,7 @@ input[type=number]{
               }
             }
             if(xx){
-              xx=BZ.eval.exe("/"+xx+"/i")
+              eval("xx=/"+xx+"/i")
               os=os.filter(x=>{
                 if(!foundTxt(x,xx)){
                   formatter.hideScenario(x)
@@ -3023,7 +3027,7 @@ input[type=number]{
                 xx=xx[1].split(" ").sort((a,b)=>a.length-b.length).pop()
                 xx="##Action[^#]*## .*"+xx
 
-                xx=BZ.eval.exe("/"+xx+"/i")
+                eval("xx=/"+xx+"/i")
                 os=os.filter(x=>{
                   if(!x.details.org.match(xx)){
                     formatter.hideScenario(x)
@@ -3041,7 +3045,7 @@ input[type=number]{
           }
         }).filter(x=>x).join("|")
         if(v){
-          v=BZ.eval.exe("/"+v+"/i")
+          eval("v=/"+v+"/i")
         }
       }else if(v.constructor==String){
         os=os.filter(x=>{
@@ -4036,7 +4040,7 @@ var analyzer={
     }else{
       r=`/[0-9]+: +(>+ Loading |<+ [^\[]+ Feature - )Scenario \\[m[0-9]+\\.t[0-9]+[^><]+(>|<)+/gms`
     }
-    r=BZ.eval.exe(r)
+    r=eval(r)
     return v.match(r)||[]
   },
   retrieveErrHash:function(k,v){

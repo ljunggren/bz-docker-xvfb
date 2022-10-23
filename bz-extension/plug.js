@@ -2786,7 +2786,7 @@ padding:"inner"+a,content:b,"":"outer"+a},function(c,d){n.fn[d]=function(d,e){va
     }
     return w
   },
-  _toCamelWords:function(w){
+  _toCamelWords:function(w,_chkUpperCase){
     w=(w||"").toString().trim()
     if(w){
       w= w.split(/[^\wÀ-Üà-øoù-ÿŒœ\u4E00-\u9FCC]]|_+| +|-+/).map((v,i)=>{
@@ -2796,7 +2796,9 @@ padding:"inner"+a,content:b,"":"outer"+a},function(c,d){n.fn[d]=function(d,e){va
           return v
         }
       }).join("")
-      
+      if(_chkUpperCase&&w[0]==w[0].toUpperCase()&&w[1]&&w[1]==w[1].toUpperCase()){
+        return w
+      }
       w=w[0].toLowerCase()+w.substring(1)
       return w
     }
@@ -7214,6 +7216,109 @@ var _Dialog={
     }
     return _xml
   },
+  xmlToJson:function(x) {
+    let j = {},cj,ps=[j],k;
+    let xo=x.match(/<[^< \n>]+(>| |\n)/g);
+
+    if(xo){
+      xo.forEach(o=>{
+        let i=x.indexOf(o)
+        if(i){
+          let xx=x.substring(0,i).trim();
+          x=x.substring(i)
+          if(xx[xx.length-1]==">"){
+            xx=xx.substring(0,xx.length-1).trim()
+            _addNode(k)
+            k=""
+            if(xx.endsWith("/")){
+              xx=xx.substring(0,xx.length-1).trim()
+              _parseProperties(xx,j)
+              ps.shift()
+              j=ps[0]
+            }else{
+              _parseProperties(xx,j)
+            }
+          }else{
+            if($.isNumeric(xx)){
+              j[k]=parseFloat(xx)
+            }else{
+              j[k]=xx
+            }
+            k=""
+          }
+        }
+        x=x.substring(o.length).trim()
+
+        if(o[0]=="<"){
+          o=o.substring(1)
+        }
+        if(o[o.length-1]==">"){
+          o=o.substring(0,o.length-1)
+        }
+        if(o[o.length-1]=="/"){
+          return
+        }
+        if(o[0]=="/"){
+          o=_glossaryHandler._getVariableName(o.substring(1),0,1)
+          if(ps[1]&&(ps[1][o]==j||(ps[1][o]&&ps[1][o].constructor==Array&&ps[1][o].includes(j)))){
+            ps.shift()
+            j=ps[0]
+          }
+          return
+        }else{
+          if(k){
+            _addNode(k)
+          }
+          k=_glossaryHandler._getVariableName(o,0,1)
+        }
+      })
+    }
+    return j;
+
+    function _addNode(k){
+      let d={}
+      if(j[k]){
+        if(j[k].constructor!=Array){
+          j[k]=[j[k]]
+        }
+        j[k].push(d)
+      }else{
+        j[k]=d
+      }
+      j=d
+      ps.unshift(d)
+    }
+
+    function _parseProperties(xx,j){
+      let xxo=xx.match(/[^\s=]+=\s*"/g)
+      if(xxo){
+        let k;
+        xxo.forEach(o=>{
+          if(k){
+            let i=xx.indexOf(o)
+            let v=xx.substring(0,i)
+            xx=xx.substring(i)
+            _parseValue(v,j,k)
+          }
+          xx=xx.substring(o.length)
+          o=o.substring(0,o.length-1).trim()
+          o=o.substring(0,o.length-1)
+          k=o=_glossaryHandler._getVariableName(o,0,1)
+        })
+        _parseValue(xx,j,k)
+      }
+    }
+
+    function _parseValue(v,j,k){
+      v=v.trim()
+      if(v){
+        j[k]=v.substring(0,v.length-1)
+        if($.isNumeric(j[k])){
+          j[k]=parseFloat(j[k])
+        }
+      }
+    }
+  },
   getHostIdxByUrl:function(_url){
     _url=_url||location.href
     return _IDE._data._setting.environments[_IDE._data._setting.curEnvironment].items.findIndex(x=>_Util._isSameHost(x.host,_url))
@@ -8324,36 +8429,38 @@ var _Dialog={
       return $util.triggerMouseEvents(o,"click",0,0,0,0,0,_fun)
     }
     $(o).focus();
-    $util.triggerKeyEvent(o,"keydown",k,ch,c,a,s)
-    _exe("_keydownDone",function(){
-      if((!c && !a) || _Util._checkBrowserType().name=="firefox"){
-        if(_Util._isHidden(o)){
-          return _finalFun()
-        }
-        $util.triggerKeyEvent(o,"keypress",k,ch,c,a,s)
-        _exe("_keypressDone",function(){
-        if(_Util._isHidden(o)){
-          return _finalFun()
-        }
-          $util.triggerKeyEvent(o,"textInput",k,ch,c,a,s);
-        if(_Util._isHidden(o)){
-          return _finalFun()
-        }
-          $util.triggerKeyEvent(o,"input",k,ch,c,a,s);
-        if(_Util._isHidden(o)){
-          return _finalFun()
-        }
-          $util.triggerKeyEvent(o,"keyup",k,ch,c,a,s);
-          if(k==9 && ["INPUT","SELECT","A","LINK","BUTTON","TEXTAREA"].includes(o.tagName)){
-            _Util._focusNextByTab(o)
+    setTimeout(()=>{
+      $util.triggerKeyEvent(o,"keydown",k,ch,c,a,s)
+      _exe("_keydownDone",function(){
+        if((!c && !a) || _Util._checkBrowserType().name=="firefox"){
+          if(_Util._isHidden(o)){
+            return _finalFun()
           }
+          $util.triggerKeyEvent(o,"keypress",k,ch,c,a,s)
+          _exe("_keypressDone",function(){
+          if(_Util._isHidden(o)){
+            return _finalFun()
+          }
+            $util.triggerKeyEvent(o,"textInput",k,ch,c,a,s);
+          if(_Util._isHidden(o)){
+            return _finalFun()
+          }
+            $util.triggerKeyEvent(o,"input",k,ch,c,a,s);
+          if(_Util._isHidden(o)){
+            return _finalFun()
+          }
+            $util.triggerKeyEvent(o,"keyup",k,ch,c,a,s);
+            if(k==9 && ["INPUT","SELECT","A","LINK","BUTTON","TEXTAREA"].includes(o.tagName)){
+              _Util._focusNextByTab(o)
+            }
+            _finalFun()
+          })
+        }else{
+          $util.triggerKeyEvent(o,"keyup",k,ch,c,a,s);
           _finalFun()
-        })
-      }else{
-        $util.triggerKeyEvent(o,"keyup",k,ch,c,a,s);
-        _finalFun()
-      }
-    })
+        }
+      })
+    },1)
     function _exe(k,_next,_timer){
       _timer=_timer||Date.now()
       if(o[k]||Date.now()-_timer>50){
@@ -18464,6 +18571,8 @@ window._uiHandler={
             }else{
               s.length?_ideActionManagement._deleteItems(s):_ideTestManagement._deleteTestOrActions(t)
             }
+          }else if(s[0]&&s[0].code[0]=="m"){
+            _ideModuleManagement._deleteItems(s)
           }else if(m){
             _ideTestManagement._deleteItems(s)
           }else{
@@ -23458,7 +23567,7 @@ var _elementMonitor={
       m=_ideObjHandler._map[m];
       if(m && t){
         t=m._testMap[t.code||t];
-        if(t && a&&$.isNumeric(a)){
+        if(t && $.isNumeric(a)){
           return t._data.actions[a];
         }
         return t;
@@ -30258,7 +30367,7 @@ var $data=function(m,t,init){
       }else if(_data.type==1&&_data.e&&!_data.apiReplaceEvent&&_data.event&&_data.event.action=="click"){
         _domActionTask._reportAppInfo("clicked: "+_data.e.outerHTML.substring(0,300))
       }
-      if(_data.e){
+      if(_data.e&&_data.type==0){
         _bzDomPicker._flashTmpCover(_data.e)
       }
       _domActionTask._reportAppInfo("After Prepare action: "+_data.e)
@@ -53722,7 +53831,9 @@ var _testCaseBodyHandler={
             _dataModel:"_data.method",
             _text:"_data._item",
             _value:"_data._item",
-            _dataRepeat:["GET","POST","PUT","DELETE","OPTIONS","PATCH"]
+            _dataRepeat:function(){
+              return ["GET","POST","PUT","DELETE","OPTIONS","PATCH"]
+            }
           },
           //host
           {
@@ -58721,7 +58832,8 @@ var _aiPageHandler={
           _if:"!_data.sync&&BZ._data._uiSwitch._tmpFieldType=='string'",
           _label:"_bzMessage._setting._objectLib._field.inputFormat",
           _dataModel:"_data.inputFormat",
-          _exDisabled:"_data.sync"
+          _exDisabled:"_data.sync",
+          _type:"textarea"
         },{
           _if:"_data.sync",
           _type:"input",
@@ -58738,7 +58850,8 @@ var _aiPageHandler={
           _if:"_data.sync&&BZ._data._uiSwitch._curField.type!='module'&&BZ._data._uiSwitch._curField.subtype!='module'",
           _label:"_bzMessage._setting._objectLib._field.inputFormat",
           _dataModel:"BZ._data._uiSwitch._curField.inputFormat",
-          _disabled:1
+          _disabled:1,
+          _type:"textarea"
         }])),
         {
           _if:function(){
@@ -71619,7 +71732,7 @@ var _aiWordHandler={
     }
     return v
   },
-  _getVariableName:function(w,_keepDash){ 
+  _getVariableName:function(w,_keepDash,_chkUpperCase){ 
     if(w){
       if(w.toUpperCase()==w){
         w=w.toLowerCase()
@@ -71632,7 +71745,7 @@ var _aiWordHandler={
       if(_keepDash){
         return v.replace(" ","")
       }
-      return _Util._toCamelWords(v.replace(/_+/g," "))
+      return _Util._toCamelWords(v.replace(/_+/g," "),_chkUpperCase)
     }else{
       return ""
     }
@@ -72290,6 +72403,7 @@ String.prototype.plural = function(revert){
     
     try{
       for(var k in d){
+        console.log("set share data: "+k)
         var v=d[k]
         if(k=="_aiDataHandler"){
           _aiDataHandler._initData(v)
@@ -76805,6 +76919,9 @@ _IDE._innerWin._viewDef={
 })()
 
 var _ideActionManagement={
+  _getScreenshotPathByName:function(n){
+    return SERVER_HOST+"/screenshot/"+pId+"/"+n+".jpg"
+  },
   _getSearchData:function(a){
     let w=a.description||""
     w+=" "+(_bzMessage._action._type[_ideActionData._keys[a.type]]||"")
@@ -77783,6 +77900,7 @@ var _ideActionManagement={
     return vs.length>1 || (_group && vs.length)
   },
   _setCurAction:function(a){
+    BZ._data._uiSwitch._apiRequest=0
     if(!BZ._isPlaying()){
       let o=_IDE._data._curAction
       if(window._testTabHandler&&o&&a&&a.type==3&&o.type!=3){
@@ -81543,7 +81661,7 @@ var _ideActionManagement={
 */
 window.bzTwComm={
   _reloadInfo:[],
-  _tmpId:0,
+  _tmpId:Date.now(),
   _list:[],_exeList:[],
   _doing:0,
   appReady:window.name.includes("bz-master"),
@@ -81564,6 +81682,9 @@ window.bzTwComm={
   //    2, script
   // _async:
   _postRequest:function(v){
+    if(bzTwComm._isIDE()&&BZ._closed){
+      return
+    }
     v.org=JSON.stringify(v)
     bzTwComm._list.push(v)
     if(!bzTwComm._getExtensionId()){
@@ -81598,7 +81719,7 @@ window.bzTwComm={
         v._bkfun=v._bkfun||v._args.find(x=>x&&x.constructor==Function)
         if(v._bkfun&&v._bkfun.constructor==Function){
           let _idx=v._args.indexOf(v._bkfun)
-          let f="f"+bzTwComm._newId()
+          let f=v.bktg+bzTwComm._newId()
           let ff=v._bkfun
           window[f]=function(){
             clearTimeout(_ckTimer)
@@ -81652,6 +81773,7 @@ window.bzTwComm={
         bzTwComm._doing=0
         _doIt()
       }catch(ex){
+        window.createErrMark&&window.createErrMark("Post data error")
         console.log(ex.stack)
         bzTwComm._list.unshift(vv)
         bzTwComm._doing=0
@@ -81698,6 +81820,9 @@ window.bzTwComm={
     return this._init(i)
   },
   setRequest:function(v){
+    if(bzTwComm._isIDE()&&BZ._closed){
+      return
+    }
     return bzTwComm._exeRequest(v)||1
   },
   _isIDE:function(){
@@ -81750,12 +81875,27 @@ window.bzTwComm={
         _postReady()
     
         function _postReady(){
-          if(!window._domRecorder||!bzTwComm.ideId||(bzTwComm._isExtension()&&(!window.BZ||!window._IDE||!window._IDE._data._setting||!window._IDE._data._setting.content))){
+          if(!window._domRecorder||(bzTwComm._isExtension()&&!window.curUser)||!bzTwComm.ideId||(bzTwComm._isExtension()&&(!window.BZ||!window._IDE||!window._IDE._data._setting||!window._IDE._data._setting.content))){
+            bzTwComm._chkTime=bzTwComm._chkTime||Date.now()
+            if(bzTwComm._isExtension()&&Date.now()-bzTwComm._chkTime>3000){
+              bzTwComm._chkTime=0
+              chrome.runtime.sendMessage({tg:"bg",reqData:1},r=>{
+                if(!r){
+                  console.log("Missing response: "+r)
+                }
+                BZ._setShareData(r)
+              });
+            }
+            if(bzTwComm._isExtension()){
+              window.createErrMark&&window.createErrMark("Page is not ready")
+            }
             return setTimeout(()=>{
               _postReady()
             },100)
           }
+          bzTwComm._chkTime=0
           bzTwComm.appReady=1
+          window.removeErrMark&&window.removeErrMark()
           console.log("page is ready")
           bzTwComm._postToIDE({_fun:"_infoPageReady",_scope:"_extensionComm"});
         }
