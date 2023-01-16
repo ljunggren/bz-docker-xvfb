@@ -374,7 +374,7 @@ if(curIframeId){console.log('call be bg ...')}else{console.log('call for client'
           let _idx=v.lastIndexOf("/"),op=v.substring(_idx+1)
           r=new RegExp(v.substring(1,_idx),op)
           rs.push(r)
-        }else if($.isNumeric(v)){
+        }else if(_eval._isNumeric(v)){
           rs.push(JSON.parse(v))
         }else if(_eval._isSign(v[0])){
           rs.push(v)
@@ -646,12 +646,16 @@ if(curIframeId){console.log('call be bg ...')}else{console.log('call for client'
       }
     })
   },
+  _isNumeric:function(a){
+    var b = a && a.toString();
+    return (!a||a.constructor!=Array) && b - parseFloat(b) + 1 >= 0
+  },
   _getValue:function(n,_outMap,_inMap){
     let ns=n.split("."),_map;
     n=ns.shift()
     if(n=="eval"){
       return _eval._buildBzData(_eval._exeCode,_eval,"_exeCode");
-    }else if($.isNumeric(n)||n.match(/^['"`].*[`"']$/)){
+    }else if(_eval._isNumeric(n)||n.match(/^['"`].*[`"']$/)){
       let nn=_eval._getTmpDataName()
       _outMap[nn]=_eval._exeCode(n)
       n=nn
@@ -2725,8 +2729,11 @@ if(curIframeId){console.log('call be bg ...')}else{console.log('call for client'
       $(o).fadeOut(i/2).fadeIn(i/2)
     }
   },
+  _inSelectOption:function(v){
+    return v.tagName=="OPTION"&& (v.parentElement.tagName=="SELECT"||(v.parentElement.parentElement&&v.parentElement.parentElement.tagName=="SELECT"))
+  },
   _isIgnoreElement:function(v){
-    return ["HTML","SCRIPT","LINK","HEAD","META","BASE","STYLE","BR","HR","OPTION"].includes(v.tagName)
+    return ["HTML","SCRIPT","LINK","HEAD","META","BASE","STYLE","BR","HR"].includes(v.tagName)||_Util._inSelectOption(v)
   },
   _isObjOrArray:function(v){
     return v&&[Array,Object].includes(v.constructor)
@@ -2753,7 +2760,7 @@ if(curIframeId){console.log('call be bg ...')}else{console.log('call for client'
     w="oo"
     result:"lwsoo ok"
   */
-  _ajax:function(a){
+  _ajax:function(a,_proxy){
     a.async=!!a.async
     _Util._handleRequestData(a.data)
     let _jsonData
@@ -2761,6 +2768,24 @@ if(curIframeId){console.log('call be bg ...')}else{console.log('call for client'
       a.query=v
       $util.generateDataByRegex(a.data,0,(v)=>{
         a.data=v
+        if(_proxy){
+          a={
+            url:_proxy,
+            method:"POST",
+            headers:{
+              "content-type":"application/json"
+            },
+            data:{
+              method:a.method,
+              url:a.url,
+              data:a.data,
+              headers:a.headers
+            },
+            complete:a.complete,
+            async:a.async
+          }
+          return _doIt()
+        }
         _doIt()
       })
     })
@@ -2781,23 +2806,25 @@ if(curIframeId){console.log('call be bg ...')}else{console.log('call for client'
         }
         return
       }
-      if(_jsonData){
-        if(!a.contentType||a.contentType.toLowerCase().includes("json")){
-          a.data=JSON.stringify(a.data)
-        }else if(a.contentType.toLowerCase().includes("form")&&_Util._isJsonValueString(_jsonData)){
-          _jsonData=_Util._strToJson(_jsonData)
-          if(_jsonData.constructor==Object){
-            _jsonData=a.data=_Util._objToAPIParameter(_jsonData)
+      try{
+        if(_jsonData){
+          if(!a.contentType||a.contentType.toLowerCase().includes("json")){
+            a.data=JSON.stringify(a.data)
+          }else if(a.contentType.toLowerCase().includes("form")&&_Util._isJsonValueString(_jsonData)){
+            _jsonData=_Util._strToJson(_jsonData)
+            if(_jsonData.constructor==Object){
+              _jsonData=a.data=_Util._objToAPIParameter(_jsonData)
+            }
           }
         }
+      }catch(ex){
+        a.complete({message:ex.stack})
       }
-      
-      
       
       if(bzTwComm._isIDE()){
         XMLHttpRequest.prototype._XMLHttpRequestSend=XMLHttpRequest.prototype.send
         XMLHttpRequest.prototype.send=function(v){
-          a.data=v
+          a.data=v||a.data
           this.abort()
           XMLHttpRequest.prototype.send=XMLHttpRequest.prototype._XMLHttpRequestSend
           delete XMLHttpRequest.prototype._XMLHttpRequestSend
@@ -2812,7 +2839,13 @@ if(curIframeId){console.log('call be bg ...')}else{console.log('call for client'
       $.ajax(a)
     }
     function _showInfo(_status,_msg){
-      _msg=_Util._formatMessage(_bzMessage._system._error._ajaxFailed,[_status,a.url,a.headers?JSON.stringify(a.headers,0,2):"",a.query?JSON.stringify(a.query,0,2):"",a.body?JSON.stringify(a.body,0,2):"",_msg])
+      _msg=_Util._formatMessage(_bzMessage._system._error._ajaxFailed,[
+        _status,
+        a.url,
+        a.headers?JSON.stringify(a.headers,0,2):"",
+        a.query?JSON.stringify(a.query,0,2):"",
+        a.body?JSON.stringify(a.body,0,2):"",
+        JSON.stringify(_msg,0,2).substring(0,200)])
       alert(_msg)
     }
     function _callExtensionBackgroud(){
@@ -2858,6 +2891,7 @@ if(curIframeId){console.log('call be bg ...')}else{console.log('call for client'
           }
           if(!BZ._isAutoRunning()){
             _showInfo(r.status,r.message||r.data)
+            BZ._data._uiSwitch._apiResultTab="_result"
           }
         }
       },"ajax",a)
@@ -4401,7 +4435,7 @@ if(curIframeId){console.log('call be bg ...')}else{console.log('call for client'
     }
   },
   _isNoTextElement:function(e){
-    return ["TEXTAREA","SELECT","OPTION","IFRAME","SVG","LINK","TITLE","META","SCRIPT","STYLE","HEAD","HTML"].includes(e.tagName.toUpperCase())
+    return ["TEXTAREA","SELECT","IFRAME","SVG","LINK","TITLE","META","SCRIPT","STYLE","HEAD","HTML"].includes(e.tagName.toUpperCase())||_Util._inSelectOption(e)
   },
   _isNoVisibleElement:function(e){
     return ["OPTION","IFRAME","SVG","LINK","TITLE","META","SCRIPT","STYLE","HTML","HEAD"].includes(e.tagName.toUpperCase())
@@ -9946,7 +9980,12 @@ tbody td:first-child,tbody td:last-child{
       }
       delete v.host
 
-      v.url=_JSHandler._prepareData(v.url,0,2,_parameter)
+      let _url=_JSHandler._prepareData(v.url,0,2,_parameter)
+      if(!_url||!_url.split){
+        alert("Skipped by empty data on url: "+v.url)
+        return
+      }
+      v.url=_url
       let q=v.query
       if(q&&q.constructor!=Object){
         eval("q="+q)
@@ -11827,6 +11866,7 @@ tbody td:first-child,tbody td:last-child{
     var a=_Util._clone(aa[i]),_returnData,
         _timerout
     if(a){
+      let _proxy=_IDE._data._setting.advanced[a.host||0].apiProxy
       if(a.disable){
         return _domActionTask._exeAPI(aa,_async,i+1,_fun,_result)
       }
@@ -11929,8 +11969,8 @@ tbody td:first-child,tbody td:last-child{
       })){
         return alert("Not support")
       }
-
-      _Util._ajax(a)
+      _timerout=-1
+      _Util._ajax(a,_proxy)
 
       _timerout=setTimeout(()=>{
         _result._type=1
@@ -15317,7 +15357,7 @@ tbody td:first-child,tbody td:last-child{
         return _tagName=="SELECT" || !_cssHandler._getParentSelect(d);
       }
     }
-    return _tagName=="OPTION";
+    return _Util._inSelectOption(d)
   },
   _insertPrepareChange:function(){
     if(this._prepareChange){

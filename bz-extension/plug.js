@@ -1542,8 +1542,11 @@ padding:"inner"+a,content:b,"":"outer"+a},function(c,d){n.fn[d]=function(d,e){va
       $(o).fadeOut(i/2).fadeIn(i/2)
     }
   },
+  _inSelectOption:function(v){
+    return v.tagName=="OPTION"&& (v.parentElement.tagName=="SELECT"||(v.parentElement.parentElement&&v.parentElement.parentElement.tagName=="SELECT"))
+  },
   _isIgnoreElement:function(v){
-    return ["HTML","SCRIPT","LINK","HEAD","META","BASE","STYLE","BR","HR","OPTION"].includes(v.tagName)
+    return ["HTML","SCRIPT","LINK","HEAD","META","BASE","STYLE","BR","HR"].includes(v.tagName)||_Util._inSelectOption(v)
   },
   _isObjOrArray:function(v){
     return v&&[Array,Object].includes(v.constructor)
@@ -1570,7 +1573,7 @@ padding:"inner"+a,content:b,"":"outer"+a},function(c,d){n.fn[d]=function(d,e){va
     w="oo"
     result:"lwsoo ok"
   */
-  _ajax:function(a){
+  _ajax:function(a,_proxy){
     a.async=!!a.async
     _Util._handleRequestData(a.data)
     let _jsonData
@@ -1578,6 +1581,24 @@ padding:"inner"+a,content:b,"":"outer"+a},function(c,d){n.fn[d]=function(d,e){va
       a.query=v
       $util.generateDataByRegex(a.data,0,(v)=>{
         a.data=v
+        if(_proxy){
+          a={
+            url:_proxy,
+            method:"POST",
+            headers:{
+              "content-type":"application/json"
+            },
+            data:{
+              method:a.method,
+              url:a.url,
+              data:a.data,
+              headers:a.headers
+            },
+            complete:a.complete,
+            async:a.async
+          }
+          return _doIt()
+        }
         _doIt()
       })
     })
@@ -1598,23 +1619,25 @@ padding:"inner"+a,content:b,"":"outer"+a},function(c,d){n.fn[d]=function(d,e){va
         }
         return
       }
-      if(_jsonData){
-        if(!a.contentType||a.contentType.toLowerCase().includes("json")){
-          a.data=JSON.stringify(a.data)
-        }else if(a.contentType.toLowerCase().includes("form")&&_Util._isJsonValueString(_jsonData)){
-          _jsonData=_Util._strToJson(_jsonData)
-          if(_jsonData.constructor==Object){
-            _jsonData=a.data=_Util._objToAPIParameter(_jsonData)
+      try{
+        if(_jsonData){
+          if(!a.contentType||a.contentType.toLowerCase().includes("json")){
+            a.data=JSON.stringify(a.data)
+          }else if(a.contentType.toLowerCase().includes("form")&&_Util._isJsonValueString(_jsonData)){
+            _jsonData=_Util._strToJson(_jsonData)
+            if(_jsonData.constructor==Object){
+              _jsonData=a.data=_Util._objToAPIParameter(_jsonData)
+            }
           }
         }
+      }catch(ex){
+        a.complete({message:ex.stack})
       }
-      
-      
       
       if(bzTwComm._isIDE()){
         XMLHttpRequest.prototype._XMLHttpRequestSend=XMLHttpRequest.prototype.send
         XMLHttpRequest.prototype.send=function(v){
-          a.data=v
+          a.data=v||a.data
           this.abort()
           XMLHttpRequest.prototype.send=XMLHttpRequest.prototype._XMLHttpRequestSend
           delete XMLHttpRequest.prototype._XMLHttpRequestSend
@@ -1629,7 +1652,13 @@ padding:"inner"+a,content:b,"":"outer"+a},function(c,d){n.fn[d]=function(d,e){va
       $.ajax(a)
     }
     function _showInfo(_status,_msg){
-      _msg=_Util._formatMessage(_bzMessage._system._error._ajaxFailed,[_status,a.url,a.headers?JSON.stringify(a.headers,0,2):"",a.query?JSON.stringify(a.query,0,2):"",a.body?JSON.stringify(a.body,0,2):"",_msg])
+      _msg=_Util._formatMessage(_bzMessage._system._error._ajaxFailed,[
+        _status,
+        a.url,
+        a.headers?JSON.stringify(a.headers,0,2):"",
+        a.query?JSON.stringify(a.query,0,2):"",
+        a.body?JSON.stringify(a.body,0,2):"",
+        JSON.stringify(_msg,0,2).substring(0,200)])
       alert(_msg)
     }
     function _callExtensionBackgroud(){
@@ -1675,6 +1704,7 @@ padding:"inner"+a,content:b,"":"outer"+a},function(c,d){n.fn[d]=function(d,e){va
           }
           if(!BZ._isAutoRunning()){
             _showInfo(r.status,r.message||r.data)
+            BZ._data._uiSwitch._apiResultTab="_result"
           }
         }
       },"ajax",a)
@@ -3218,7 +3248,7 @@ padding:"inner"+a,content:b,"":"outer"+a},function(c,d){n.fn[d]=function(d,e){va
     }
   },
   _isNoTextElement:function(e){
-    return ["TEXTAREA","SELECT","OPTION","IFRAME","SVG","LINK","TITLE","META","SCRIPT","STYLE","HEAD","HTML"].includes(e.tagName.toUpperCase())
+    return ["TEXTAREA","SELECT","IFRAME","SVG","LINK","TITLE","META","SCRIPT","STYLE","HEAD","HTML"].includes(e.tagName.toUpperCase())||_Util._inSelectOption(e)
   },
   _isNoVisibleElement:function(e){
     return ["OPTION","IFRAME","SVG","LINK","TITLE","META","SCRIPT","STYLE","HTML","HEAD"].includes(e.tagName.toUpperCase())
@@ -9061,6 +9091,7 @@ for(k in $util){
     return _html;
   }
 };var _CtrlDriver={
+  bd:{"{":"}","[":"]","(":")","'":"'",'"':'"','`':'`'},
   _tmpValue:0,
   _curDomItem:null,
   _curSignedList:[],
@@ -9128,10 +9159,115 @@ for(k in $util){
     }
     return o;
   },
+  /**/
+  _findKeyOuterBlock:function(vs,tk,_start,bs,_noRegex){
+    bs=bs||_CtrlDriver.bd
+    let k,b,c,s;
+    _init()
+    if(vs.push){
+      vs=[...vs]
+    }
+    if(_start){
+      vs=vs.push?vs.splice(_start):vs.substring(_start)
+    }
+    for(let i=0;i<vs.length;i++){
+      c=vs[i]
+      if(c=="\\"){
+        b=!b
+      }else if(b){
+        b=0
+      }else if(!_noRegex&&k=="/"&&c=="/"){
+        _init()
+        continue
+      }else if(!_noRegex&&!k&&c=="/"&&(!s||s.trim().match(/[\(\[\=\?\:]$/))){
+        k="/"
+        continue
+      }else if(k){
+        if(k.r==c){
+          if(k.n){
+            k.n--
+          }else{
+            _init()
+          }
+        }else if(k.l==c){
+          k.n++
+        }
+        continue
+      }else if(bs[c]){ //([{
+        k={l:c,r:bs[c],n:0,p:{k:c}}
+      }
+      s.push?s.push(c):s+=c;
+
+      let kk=_isKey(s,c)
+      if(kk){
+        if(vs.pop){
+          return {
+            e:vs.splice(i+1),
+            p:vs.splice(0,i),
+            k:kk
+          }
+        }
+        return {
+          p:vs.substring(0,i-kk.length+1),
+          k:kk,
+          e:vs.substring(i+1)
+        }
+      }
+    }
+
+    function _init(){
+      k=0
+      s=vs.constructor==Array?[]:"";
+    }
+
+    function _isKey(s,c){
+      if(tk.constructor==Function){
+        return tk(s)
+      }else if(tk.constructor==RegExp){
+        s=s.match(tk)
+        return s&&s[0]
+      }
+      return (tk==s||tk==c)&&tk
+    }
+  },
+  _parseViewDef:function(s){
+    if(s&&s.constructor==String){
+      let d={}
+      s=_parseXML(s,d)
+    }
+    return s
+
+    function _parseXML(s){
+      s=s.trim()
+      let p=_CtrlDriver._findKeyOuterBlock(s,">")
+
+    }
+
+    function _parseProperties(s,d){
+      s=s.trim()
+      let p=s.match(/^([^=]+)=/)
+      if(p){
+        s=s.substring(p[0].length).trim()
+        if(s[0].match(/['"]/)){
+          
+        }
+        p=p[1].trim()
+        d._attr=d._attr||{}
+        d[p]=v
+        _parseProperties(s,d)
+      }
+    }
+
+    function _throwError(){
+      throw new Error(_bzMessage._system._error._formatError+s.substring(0,100)+(s.length>100?" ...":""))
+    }
+  },
+  /**/
   _execute:function(_ctrl,_data,_viewDef,_box){
     _doc=_ctrl._document||document;
     _data = _data || _ctrl._data || {};
     _viewDef=_viewDef || _ctrl._viewDef;
+    // _viewDef=_CtrlDriver._parseViewDef(_viewDef);
     _box=_box || _ctrl._area || (_doc==document?_doc.body:_CtrlDriver._createBZArea(_doc));
     if(!_ctrl._data){
       _ctrl._data=_data;
@@ -11170,7 +11306,7 @@ for(k in $util){
           let _idx=v.lastIndexOf("/"),op=v.substring(_idx+1)
           r=new RegExp(v.substring(1,_idx),op)
           rs.push(r)
-        }else if($.isNumeric(v)){
+        }else if(_eval._isNumeric(v)){
           rs.push(JSON.parse(v))
         }else if(_eval._isSign(v[0])){
           rs.push(v)
@@ -11442,12 +11578,16 @@ for(k in $util){
       }
     })
   },
+  _isNumeric:function(a){
+    var b = a && a.toString();
+    return (!a||a.constructor!=Array) && b - parseFloat(b) + 1 >= 0
+  },
   _getValue:function(n,_outMap,_inMap){
     let ns=n.split("."),_map;
     n=ns.shift()
     if(n=="eval"){
       return _eval._buildBzData(_eval._exeCode,_eval,"_exeCode");
-    }else if($.isNumeric(n)||n.match(/^['"`].*[`"']$/)){
+    }else if(_eval._isNumeric(n)||n.match(/^['"`].*[`"']$/)){
       let nn=_eval._getTmpDataName()
       _outMap[nn]=_eval._exeCode(n)
       n=nn
@@ -18493,6 +18633,9 @@ window._uiHandler={
         },
         _disable:function(){
           let a=_IDE._data._curAction
+          if(!a){
+            return
+          }
           if(_uiSwitch._selectedItems.length&&BZ._isCheckout()){
             if(a.type!=7){
               a=_ideActionManagement._getPreAction(a)
@@ -19818,6 +19961,7 @@ window._uiHandler={
                           d=d._item.code
                           let v=eval(_getModelValue())
                           if(v==d||d==_filter._curItem){
+                            debugger
                             v=" active"
                           }else{
                             v=""
@@ -23928,7 +24072,7 @@ var _elementMonitor={
       v=v||""
       v=v.toLowerCase()
 
-      return v&&!wm.find(x=>{
+      return wm&&v&&!wm.find(x=>{
         if(x=="."){
         }else if(x[0]=="!"){
           return v.includes(x.substring(1))
@@ -28407,7 +28551,7 @@ var $data=function(m,t,init){
         return _tagName=="SELECT" || !_cssHandler._getParentSelect(d);
       }
     }
-    return _tagName=="OPTION";
+    return _Util._inSelectOption(d)
   },
   _insertPrepareChange:function(){
     if(this._prepareChange){
@@ -29033,7 +29177,12 @@ var $data=function(m,t,init){
       }
       delete v.host
 
-      v.url=_JSHandler._prepareData(v.url,0,2,_parameter)
+      let _url=_JSHandler._prepareData(v.url,0,2,_parameter)
+      if(!_url||!_url.split){
+        alert("Skipped by empty data on url: "+v.url)
+        return
+      }
+      v.url=_url
       let q=v.query
       if(q&&q.constructor!=Object){
         eval("q="+q)
@@ -30914,6 +31063,7 @@ var $data=function(m,t,init){
     var a=_Util._clone(aa[i]),_returnData,
         _timerout
     if(a){
+      let _proxy=_IDE._data._setting.advanced[a.host||0].apiProxy
       if(a.disable){
         return _domActionTask._exeAPI(aa,_async,i+1,_fun,_result)
       }
@@ -31016,8 +31166,8 @@ var $data=function(m,t,init){
       })){
         return alert("Not support")
       }
-
-      _Util._ajax(a)
+      _timerout=-1
+      _Util._ajax(a,_proxy)
 
       _timerout=setTimeout(()=>{
         _result._type=1
@@ -33403,8 +33553,8 @@ var _tmpLoopDatahandler={
         d.contentType=r.headers["Content-Type"]||r.headers["content-type"]||r.headers["Accept"]||r.headers["accept"]
       }
       rr.push(d)
-      delete (r.headers||{})["Content-Type"]
-      delete (r.headers||{})["content-type"]
+      // delete (r.headers||{})["Content-Type"]
+      // delete (r.headers||{})["content-type"]
     })
     return rr
   },
@@ -60026,7 +60176,7 @@ var _aiPageHandler={
     if(!_tabs.includes(t)){
       t="_try"
     }else if(d.method=="GET"){
-      _tabs.splice(4,1)
+//      _tabs.splice(4,1)
       if(t=="_body"){
         t="_query"
       }
@@ -60090,6 +60240,10 @@ var _aiPageHandler={
                       c+="background:#FFF;"
                     }
                     return c
+                  },
+                  title:function(){
+                    let _proxy=_IDE._data._setting.advanced[BZ._data._uiSwitch._apiRequest.host].apiProxy
+                    return _proxy?_Util._formatMessage(_bzMessage._api._proxyWarning,_proxy):""
                   }
                 },
                 _items:[
@@ -60099,8 +60253,17 @@ var _aiPageHandler={
                   },
                   {
                     _tag:"option",
-                    _attr:{value:"_data._idx"},
-                    _text:"'['+_data._item.name+'] '+_data._item.host",
+                    _attr:{
+                      value:"_data._idx"
+                    },
+                    _text:function(d){
+                      let _proxy=_IDE._data._setting.advanced[d._idx].apiProxy;
+                      if(_proxy){
+                        return '['+d._item.name+' (Proxy: '+_proxy+')] '+d._item.host
+                      }else{
+                        return '['+d._item.name+'] '+d._item.host
+                      }
+                    },
                     _dataRepeat:function(){
                       return _IDE._data._setting.environments[_IDE._data._setting.curEnvironment].items
                     }
@@ -60838,7 +61001,6 @@ var _aiPageHandler={
           setTimeout(()=>{
             _aiPageHandler._popAPIForm(d)
             BZ._data._uiSwitch._apiResultTab="_result"
-            BZ._data._uiSwitch._curDetailsTab="_try"
           },10)
         }
       },10)
@@ -67810,7 +67972,7 @@ var _aiWordHandler={
       }
     }
     _doFinal()
-    if(_simple!=4&&_data.oe!=_data.ee&&o._text&&_data.oe.tagName!="CANVAS"){
+    if(_simple!=4&&_data.oe!=_data.ee&&o._text&&_data.oe.tagName!="CANVAS"&&!_cssHandler._isInShadowDom(_data.oe)){
       if(!pps.find(x=>{return x._type=="text"})){
         pps.unshift({_type:"text",_value:o._text});
       }
@@ -71067,6 +71229,7 @@ var _aiWordHandler={
           p=1
         }
       }
+      // if(!p||(_orgElement&&_Util._getElementRoot(_orgElement)!=document.body) && this._filterTextInEndList(_result,e,0,_orgElement)){
       if(!p && this._filterTextInEndList(_result,e,0,_orgElement)){
         return _result._endList;
       }
@@ -77413,7 +77576,7 @@ var _ideActionManagement={
       h.find((x,i)=>{
         if(x._key=="Content-Type"){
           _Util._eval("d.contentType="+x._value,{d:d})
-          h.splice(i,1)
+          // h.splice(i,1)
           return 1
         }
       })
@@ -78893,6 +79056,9 @@ var _ideActionManagement={
       }
     });
   },
+  _isSkippedResult:function(r){
+    return r._bzSkip||(r._data.type==4&&!r._data.refOfSuccess)
+  },
   _paste:function(){
     let c=_IDE._data._clipData,
         _inCut=c.inCut,
@@ -78927,9 +79093,15 @@ var _ideActionManagement={
       }
 
       var _idx=t.actions.indexOf(a)+1,
-          _newSelect=_Util._clone(_items);
+          _newSelect=_Util._clone(_items),
+          _set=new Set(t.actions.map(x=>x.id));
 
       _newSelect.forEach((a,i)=>{
+        a.id=a.id||1
+        while(_set.has(a.id)){
+          a.id+=1
+        }
+        _set.add(a.id)
         t.actions.splice(i+_idx,0,a)
         _newSelect[i]=t.actions[i+_idx]
       })
