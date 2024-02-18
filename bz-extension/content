@@ -22,7 +22,7 @@ function initCode(t,tt){
     window.postMessage({bz:1,bzExtensionId:chrome.runtime.id}, "*");
   }
 }
-initCode(10,0)
+
 function registerTab(){
   //_console("content register")
   console.log("Do register from:"+bzIframeId)
@@ -373,4 +373,6 @@ function _focus(){
   }
   document.body.focus()
 }
+initCode(10,0)
+
 _focus()
